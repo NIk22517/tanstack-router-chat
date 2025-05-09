@@ -16,6 +16,8 @@ function RouteComponent() {
           removeItem();
           navigate({
             to: "/login",
+            reloadDocument: true,
+            replace: true,
           });
         }}
       >

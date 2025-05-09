@@ -5,6 +5,8 @@ import { routeTree } from "./routeTree.gen";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useLocalStorage } from "./hooks";
+import { useEffect, useState } from "react";
+import { useSocket } from "./hooks/useSocket";
 
 const queryClient = new QueryClient();
 
@@ -14,6 +16,7 @@ const router = createRouter({
   context: {
     queryClient,
     userDetail: undefined,
+    socket: undefined,
   },
   defaultPreload: "intent",
   scrollRestoration: true,
@@ -30,15 +33,18 @@ declare module "@tanstack/react-router" {
 
 const App = () => {
   const { getItem } = useLocalStorage("auth");
-  const userDetail = getItem();
+  const user = getItem();
+
+  const socket = useSocket({});
 
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider
         router={router}
         context={{
-          userDetail,
+          userDetail: user,
           queryClient,
+          socket: socket,
         }}
       />
     </QueryClientProvider>

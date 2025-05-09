@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
@@ -9,10 +9,18 @@ import { services } from "@/services";
 import { useLocalStorage } from "@/hooks";
 
 export const Route = createFileRoute("/login")({
+  beforeLoad: (ctx) => {
+    if (ctx.context.userDetail?.token) {
+      throw redirect({
+        to: "/user/$user_id",
+        params: { user_id: "3" },
+      });
+    }
+  },
   component: RouteComponent,
 });
 
-const logSchema = z.object({
+export const logSchema = z.object({
   email: z.string().email({
     message: "Invalid email address",
   }),
@@ -47,11 +55,11 @@ function RouteComponent() {
         console.log("error", error);
       } else {
         setItem(data);
+
         navigate({
-          to: "/user/$user_id",
-          params: {
-            user_id: data.id,
-          },
+          to: "/",
+          reloadDocument: true,
+          replace: true,
         });
       }
     },
@@ -146,6 +154,18 @@ function RouteComponent() {
             </Button>
           )}
         </form.Subscribe>
+
+        <Button
+          variant={"link"}
+          className="flex items-end justify-end cursor-pointer"
+          onClick={() => {
+            navigate({
+              to: "/signin",
+            });
+          }}
+        >
+          Create a new account
+        </Button>
       </form>
     </div>
   );

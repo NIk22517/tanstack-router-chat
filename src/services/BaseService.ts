@@ -42,7 +42,7 @@ export class BaseService {
 
   protected buildConfig({
     auth,
-    customHeaders,
+    customHeaders = {},
     isMultipart = false,
   }: {
     auth?: AuthInfo;
