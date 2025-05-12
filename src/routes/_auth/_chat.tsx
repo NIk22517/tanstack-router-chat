@@ -3,9 +3,17 @@ import { Label } from "@/components/ui/label";
 import { UserAvatar } from "@/components/user-avatar";
 import { services } from "@/services";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useMatches,
+} from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useMarkRead } from "./_chat/(apiCalls)";
+import type { AttachmentType } from "./_chat/$chat_id.index";
+import { FileImage } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface ChatMember {
   id: number;
@@ -15,7 +23,7 @@ export interface ChatMember {
 
 export interface LastMessage {
   message: string;
-  attachments: any[];
+  attachments: AttachmentType[];
   created_at: string;
 }
 
@@ -72,6 +80,11 @@ export const Route = createFileRoute("/_auth/_chat")({
 
 function RouteComponent() {
   const { userDetail, queryClient, socket } = Route.useRouteContext();
+  const matches = useMatches();
+  const chatMatch = matches.at(-1);
+  const chat_id = (chatMatch?.params as Record<"chat_id", string> | undefined)
+    ?.chat_id;
+
   const { mutate } = useMarkRead();
   const { data } = useSuspenseInfiniteQuery({
     queryKey: ["chat_list"],
@@ -147,7 +160,12 @@ function RouteComponent() {
 
   return (
     <div className="flex justify-between w-screen h-screen">
-      <div className="flex flex-col gap-2 w-sm  border-r-1 p-4 h-screen overflow-y-auto">
+      <div
+        className={cn(
+          "flex flex-col gap-2 border-r-1 p-4 h-screen overflow-y-auto",
+          chat_id ? "hidden sm:flex sm:w-sm" : "w-full sm:w-sm"
+        )}
+      >
         {data.pages
           .flatMap((el) => el)
           .map((el) => {
@@ -176,9 +194,27 @@ function RouteComponent() {
                   <div className="flex flex-col gap-0.5">
                     <Label>{el.members[0].name}</Label>
                     {el.last_message && (
-                      <Label className="text-[12px]">
-                        {el.last_message.message}
-                      </Label>
+                      <>
+                        {el.last_message.attachments.length > 0 ? (
+                          <>
+                            {el.last_message.attachments[0].resource_type ===
+                            "image" ? (
+                              <div className="flex flex-row gap-0.5 items-center">
+                                <FileImage size={"0.95rem"} />
+                                <Label className="text-[12px]">Image</Label>
+                              </div>
+                            ) : (
+                              <Label>
+                                {el.last_message.attachments[0].url}
+                              </Label>
+                            )}
+                          </>
+                        ) : (
+                          <Label className="text-[12px]">
+                            {el.last_message.message}
+                          </Label>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

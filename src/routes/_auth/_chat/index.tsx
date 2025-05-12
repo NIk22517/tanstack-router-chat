@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_auth/_chat/")({
 
 function RouteComponent() {
   return (
-    <div className="w-full h-full flex items-center justify-center">
+    <div className="w-full h-full hidden sm:flex items-center justify-center">
       <Label className="text-2xl">Select User</Label>
     </div>
   );

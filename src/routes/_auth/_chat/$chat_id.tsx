@@ -8,6 +8,15 @@ import { SendHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
+import { SelectFiles } from "./(SelectFiles)";
+import { useState } from "react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import { Card, CardContent } from "@/components/ui/card";
+import { AvatarImage, Avatar } from "@/components/ui/avatar";
 
 export const getChatHeader = async (chat_id: string, token?: string) => {
   const res = await services.chatServices.singleChatList({ chat_id, token });
@@ -40,6 +49,7 @@ function RouteComponent() {
     retry: false,
     refetchOnWindowFocus: false,
   });
+
   const { mutate } = useMutation({
     mutationFn: async ({
       message,
@@ -50,19 +60,31 @@ function RouteComponent() {
       chat_id: string;
       token?: string;
     }) => {
+      if (message.trim().length === 0 && files.length === 0) {
+        throw new Error("Message can not be empty");
+      }
       const formData = new FormData();
       formData.append("chat_id", chat_id);
       formData.append("message", message);
+      files?.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      // if (reply_id) {
+      //   formData.append("reply_message_id", reply_id);
+      // }
       const res = await services.chatServices.sendMessages({
         token,
         data: formData,
       });
+
       if (res.status === 200) {
         return res.data.data;
       }
       throw new Error(res?.data?.message);
     },
   });
+  const [files, setFiles] = useState<File[]>([]);
   const form = useForm({
     defaultValues: {
       message: "",
@@ -79,6 +101,7 @@ function RouteComponent() {
             form.reset({
               message: "",
             });
+            setFiles([]);
           },
         }
       );
@@ -101,7 +124,36 @@ function RouteComponent() {
           );
         })}
       </div>
-      <Outlet />
+      {files.length > 0 ? (
+        <div className="w-full h-full py-2 px-4 flex justify-center items-center overflow-hidden">
+          <Carousel className="w-full h-full flex items-center justify-center">
+            <CarouselContent>
+              {files.map((file, index) => (
+                <CarouselItem key={`${index + 1}`} className="h-full w-full">
+                  <div className="flex items-center justify-center h-[50vh] w-full">
+                    <Card className="h-full w-full">
+                      <CardContent className="h-full w-full">
+                        {file.type.startsWith("image/") ? (
+                          <Avatar className="h-full w-full rounded-none">
+                            <AvatarImage
+                              src={URL.createObjectURL(file)}
+                              className="h-full w-full object-contain"
+                            />
+                          </Avatar>
+                        ) : (
+                          ""
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+        </div>
+      ) : (
+        <Outlet />
+      )}
 
       <div className="w-full mt-auto">
         <form
@@ -128,6 +180,11 @@ function RouteComponent() {
               );
             }}
           </form.Field>
+          <SelectFiles
+            selectFiles={(files) => {
+              setFiles(files);
+            }}
+          />
           <form.Subscribe selector={(state) => [state.canSubmit]}>
             {([canSubmit]) => {
               return (

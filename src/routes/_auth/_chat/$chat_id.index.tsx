@@ -8,11 +8,32 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { SingleMessage } from "./(SingleMessage)";
 
+export type AttachmentType = {
+  asset_id: string;
+  public_id: string;
+  version: 1747055225;
+  version_id: string;
+  signature: string;
+  width: 626;
+  height: 313;
+  format: string;
+  resource_type: "image";
+  created_at: string;
+  tags: string[];
+  pages: 1;
+  bytes: 31966;
+  type: "upload";
+  etag: string;
+  placeholder: false;
+  url: string;
+  secure_url: string;
+};
+
 export interface ChatMessage {
   chat_id: number;
   id: number;
   message: string;
-  attachments: any[];
+  attachments: AttachmentType[];
   sender_id: number;
   created_at: string;
   read_status: "read" | "unread";
@@ -22,7 +43,7 @@ export interface ChatMessage {
   reply_data?: {
     id: number;
     message: string;
-    attachments: any[];
+    attachments: AttachmentType[];
     sender_id: number;
     created_at: string;
     sender_name: string;
@@ -69,6 +90,7 @@ export const Route = createFileRoute("/_auth/_chat/$chat_id/")({
 function RouteComponent() {
   const { chat_id } = Route.useParams();
   const { userDetail, queryClient, socket } = Route.useRouteContext();
+
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useSuspenseInfiniteQuery({
       queryKey: ["get_chat_messages", chat_id],

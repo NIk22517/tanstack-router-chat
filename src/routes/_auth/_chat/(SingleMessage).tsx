@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
-import type { ChatMessage } from "./$chat_id.index";
+import { Route, type ChatMessage } from "./$chat_id.index";
 import { ActionTooltip } from "@/components/action-tooltip";
 import { DeleteMessage } from "./(DeleteMessage)";
-import { CheckCheck, Trash2 } from "lucide-react";
+import { CheckCheck, Reply, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 interface MessageProps {
   message: ChatMessage;
@@ -18,8 +19,13 @@ enum MessageAction {
   DEFAULT = "default",
 }
 
+export interface MessageRouteState {
+  message: ChatMessage;
+}
+
 export const SingleMessage = ({ message, isYou }: MessageProps) => {
   const [action, setAction] = useState<MessageAction>(MessageAction.DEFAULT);
+
   return (
     <div
       key={message.id}
@@ -42,6 +48,9 @@ export const SingleMessage = ({ message, isYou }: MessageProps) => {
                   >
                     <Trash2 />
                   </Button>
+                  <Button onClick={() => {}}>
+                    <Reply />
+                  </Button>
                 </div>
               }
             >
@@ -51,7 +60,42 @@ export const SingleMessage = ({ message, isYou }: MessageProps) => {
                   isYou ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
                 )}
               >
-                <p>{message.message}</p>
+                {message.attachments.length > 0 && (
+                  <div
+                    className="grid gap-2 mt-2"
+                    style={{
+                      gridTemplateColumns:
+                        message.attachments.length === 1
+                          ? "1fr"
+                          : message.attachments.length === 2
+                            ? "1fr 1fr"
+                            : "1fr 1fr 1fr",
+                    }}
+                  >
+                    {message.attachments.map((attachment) => {
+                      return (
+                        <div
+                          key={attachment.asset_id}
+                          className="overflow-hidden rounded-2xl"
+                        >
+                          {attachment.resource_type === "image" ? (
+                            <Avatar className="w-full h-auto rounded-2xl">
+                              <AvatarImage
+                                src={attachment.secure_url}
+                                className="object-cover w-full h-full"
+                              />
+                            </Avatar>
+                          ) : (
+                            <div className="bg-white p-2 text-black rounded shadow">
+                              {JSON.stringify(attachment)}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {message.message && <p className="mt-2">{message.message}</p>}
               </div>
             </ActionTooltip>
             <div
