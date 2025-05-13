@@ -33,12 +33,19 @@ export const DeleteMessage = ({
   const userDetail = getItem();
   const { mutate, isPending } = useDeleteMessage();
   const handleDelete = (action: AllActions) => {
-    mutate({
-      action,
-      chat_id,
-      message_ids,
-      token: userDetail?.token,
-    });
+    mutate(
+      {
+        action,
+        chat_id,
+        message_ids,
+        token: userDetail?.token,
+      },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      }
+    );
   };
   return (
     <Dialog open={open} onOpenChange={onClose}>

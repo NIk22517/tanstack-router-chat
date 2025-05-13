@@ -111,6 +111,46 @@ function RouteComponent() {
 
   useEffect(() => {
     if (!socket) return;
+
+    socket.listenToEvent(
+      "deleteMessage",
+      (eventData: {
+        action: "delete_for_me";
+        chat_id: number;
+        deleted_by: number;
+        messages_ids: number[];
+      }) => {
+        console.log(eventData, "eventData");
+        if (Number(chat_id) !== eventData.chat_id) return;
+        const msg_id = new Set(eventData.messages_ids);
+        queryClient.setQueryData(
+          ["get_chat_messages", eventData.chat_id?.toString()],
+          (old: { pageParams: number[]; pages: ChatMessage[][] }) => {
+            if (old && Array.isArray(old.pages)) {
+              return {
+                ...old,
+                pages: old.pages.map((page) => {
+                  return page.map((el) => {
+                    if (msg_id.has(el.id)) {
+                      return {
+                        ...el,
+                        delete_action: eventData.action,
+                        delete_text:
+                          userDetail?.id === eventData.deleted_by
+                            ? `You deleted this message ${eventData.action === "delete_for_me" ? "" : "for everyone"}`
+                            : "This message is deleted by sender",
+                      };
+                    }
+                    return el;
+                  });
+                }),
+              };
+            }
+          }
+        );
+      }
+    );
+
     socket.listenToEvent(
       "markReadMessage",
       (eventData: { chat_id: number; seen_by: number }) => {

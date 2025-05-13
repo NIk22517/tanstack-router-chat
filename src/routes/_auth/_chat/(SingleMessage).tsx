@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Route, type ChatMessage } from "./$chat_id.index";
+import { type ChatMessage } from "./$chat_id.index";
 import { ActionTooltip } from "@/components/action-tooltip";
 import { DeleteMessage } from "./(DeleteMessage)";
 import { CheckCheck, Reply, Trash2 } from "lucide-react";
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { useChatState, key } from "@/hooks/useChatState";
+import { ReplyData } from "./(ReplyData)";
 
 interface MessageProps {
   message: ChatMessage;
@@ -25,6 +27,7 @@ export interface MessageRouteState {
 
 export const SingleMessage = ({ message, isYou }: MessageProps) => {
   const [action, setAction] = useState<MessageAction>(MessageAction.DEFAULT);
+  const { setData } = useChatState(key);
 
   return (
     <div
@@ -48,7 +51,13 @@ export const SingleMessage = ({ message, isYou }: MessageProps) => {
                   >
                     <Trash2 />
                   </Button>
-                  <Button onClick={() => {}}>
+                  <Button
+                    onClick={() => {
+                      setData({
+                        reply: message,
+                      });
+                    }}
+                  >
                     <Reply />
                   </Button>
                 </div>
@@ -60,6 +69,7 @@ export const SingleMessage = ({ message, isYou }: MessageProps) => {
                   isYou ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
                 )}
               >
+                <ReplyData message={message.reply_data as ChatMessage} />
                 {message.attachments.length > 0 && (
                   <div
                     className="grid gap-2 mt-2"
@@ -95,7 +105,7 @@ export const SingleMessage = ({ message, isYou }: MessageProps) => {
                     })}
                   </div>
                 )}
-                {message.message && <p className="mt-2">{message.message}</p>}
+                {message.message && <p>{message.message}</p>}
               </div>
             </ActionTooltip>
             <div

@@ -210,7 +210,7 @@ function RouteComponent() {
                             )}
                           </>
                         ) : (
-                          <Label className="text-[12px]">
+                          <Label className="text-[12px] text-ellipsis line-clamp-1">
                             {el.last_message.message}
                           </Label>
                         )}

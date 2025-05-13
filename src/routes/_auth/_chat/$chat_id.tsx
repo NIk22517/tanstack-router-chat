@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { AvatarImage, Avatar } from "@/components/ui/avatar";
+import { key, useChatState } from "@/hooks/useChatState";
+import { ReplyData } from "./(ReplyData)";
 
 export const getChatHeader = async (chat_id: string, token?: string) => {
   const res = await services.chatServices.singleChatList({ chat_id, token });
@@ -42,6 +44,8 @@ export const Route = createFileRoute("/_auth/_chat/$chat_id")({
 function RouteComponent() {
   const { chat_id } = Route.useParams();
   const { userDetail } = Route.useRouteContext();
+  const { data: stateData, resetData } = useChatState(key);
+
   const { data } = useSuspenseQuery({
     queryKey: ["get_chat_header", chat_id],
     queryFn: () => getChatHeader(chat_id, userDetail?.token),
@@ -70,9 +74,9 @@ function RouteComponent() {
         formData.append("files", file);
       });
 
-      // if (reply_id) {
-      //   formData.append("reply_message_id", reply_id);
-      // }
+      if (stateData?.reply?.id) {
+        formData.append("reply_message_id", stateData?.reply?.id?.toString());
+      }
       const res = await services.chatServices.sendMessages({
         token,
         data: formData,
@@ -102,6 +106,7 @@ function RouteComponent() {
               message: "",
             });
             setFiles([]);
+            resetData();
           },
         }
       );
@@ -155,13 +160,20 @@ function RouteComponent() {
         <Outlet />
       )}
 
-      <div className="w-full mt-auto">
+      <div className="w-full mt-auto border-1 border-gray-200 p-2">
+        <ReplyData
+          message={stateData?.reply}
+          className="mb-2"
+          handleClose={() => {
+            resetData();
+          }}
+        />
         <form
           onSubmit={(e) => {
             e.preventDefault();
             e.stopPropagation();
           }}
-          className="flex items-center gap-2 p-2 border-1 border-gray-200"
+          className="flex items-center gap-2"
         >
           <form.Field name="message">
             {({ state, handleChange, form }) => {
