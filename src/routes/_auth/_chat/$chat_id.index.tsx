@@ -7,6 +7,7 @@ import { useMessageProcessor } from "@/hooks/useMessagesProcess";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { SingleMessage } from "./(SingleMessage)";
+import { useMarkRead } from "./(apiCalls)";
 
 export type AttachmentType = {
   asset_id: string;
@@ -90,6 +91,7 @@ export const Route = createFileRoute("/_auth/_chat/$chat_id/")({
 function RouteComponent() {
   const { chat_id } = Route.useParams();
   const { userDetail, queryClient, socket } = Route.useRouteContext();
+  const { mutate: mutateReadMsg } = useMarkRead();
 
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useSuspenseInfiniteQuery({
@@ -105,7 +107,6 @@ function RouteComponent() {
           : undefined;
       },
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
       retry: false,
     });
 
@@ -115,17 +116,22 @@ function RouteComponent() {
     socket.listenToEvent(
       "deleteMessage",
       (eventData: {
-        action: "delete_for_me";
+        action: "delete_for_me" | "delete_for_everyone" | "clear_all_chat";
         chat_id: number;
         deleted_by: number;
         messages_ids: number[];
       }) => {
-        console.log(eventData, "eventData");
         if (Number(chat_id) !== eventData.chat_id) return;
         const msg_id = new Set(eventData.messages_ids);
         queryClient.setQueryData(
           ["get_chat_messages", eventData.chat_id?.toString()],
           (old: { pageParams: number[]; pages: ChatMessage[][] }) => {
+            if (eventData.action === "clear_all_chat") {
+              return {
+                pageParams: [],
+                pages: [],
+              };
+            }
             if (old && Array.isArray(old.pages)) {
               return {
                 ...old,
@@ -184,15 +190,27 @@ function RouteComponent() {
       if (Number(chat_id) !== eventdata.chat_id) return;
       queryClient.setQueryData(
         ["get_chat_messages", eventdata.chat_id?.toString()],
-        (old: { pageParams: number[]; pages: ChatMessage[][] }) => {
-          if (old && Array.isArray(old.pages)) {
+        (old: { pageParams: number[]; pages: ChatMessage[][] } | undefined) => {
+          if (old && Array.isArray(old.pages) && Array.isArray(old.pages[0])) {
             return {
               ...old,
               pages: [[eventdata, ...old.pages[0]], ...old.pages.slice(1)],
             };
           }
+
+          return {
+            pageParams: [],
+            pages: [[eventdata]],
+          };
         }
       );
+
+      if (eventdata.sender_id !== userDetail?.id) {
+        mutateReadMsg({
+          chat_id: eventdata.chat_id,
+          token: userDetail?.token,
+        });
+      }
     });
   }, [socket?.listenToEvent]);
 

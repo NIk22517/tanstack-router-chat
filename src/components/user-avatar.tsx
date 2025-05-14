@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AvatarProps {
   src?: string;
-  fallback?: string;
+  fallback?: string | React.ReactElement;
   className?: string;
 }
 
@@ -21,7 +21,9 @@ export const UserAvatar = ({
   return (
     <Avatar className={className}>
       <AvatarImage src={src} alt="@shadcn" />
-      <AvatarFallback>{getInitials(fallback)}</AvatarFallback>
+      <AvatarFallback>
+        {typeof fallback === "string" ? getInitials(fallback) : fallback}
+      </AvatarFallback>
     </Avatar>
   );
 };

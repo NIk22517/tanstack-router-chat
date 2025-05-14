@@ -11,7 +11,11 @@ import {
 import { useLocalStorage } from "@/hooks";
 import { useDeleteMessage } from "./(apiCalls)";
 
-const allActions = ["delete_for_me", "delete_for_everyone"] as const;
+const allActions = [
+  "delete_for_me",
+  "delete_for_everyone",
+  "clear_all_chat",
+] as const;
 
 type AllActions = (typeof allActions)[number];
 
@@ -23,11 +27,13 @@ interface DeleteMessageProps {
     chat_id: number;
   };
   onClose: () => void;
+  action?: "default" | "user";
 }
 
 export const DeleteMessage = ({
   data: { open, sender_id, message_ids, chat_id },
   onClose,
+  action = "user",
 }: DeleteMessageProps) => {
   const { getItem } = useLocalStorage("auth");
   const userDetail = getItem();
@@ -51,14 +57,18 @@ export const DeleteMessage = ({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="w-1xl">
         <DialogHeader>
-          <DialogTitle>Delete Message</DialogTitle>
+          <DialogTitle>
+            {action === "default" ? "Clear All Messages" : "Delete Message"}
+          </DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete this message?
+            {action === "default"
+              ? " Are you sure you want to claer all message? once deleted can not be recovered"
+              : " Are you sure you want to delete this message?"}
           </DialogDescription>
         </DialogHeader>
 
         <DialogFooter>
-          {userDetail?.id !== sender_id ? (
+          {action === "default" ? (
             <>
               <DialogClose asChild>
                 <Button>Cancel</Button>
@@ -66,28 +76,48 @@ export const DeleteMessage = ({
               <Button
                 disabled={isPending}
                 variant={"outline"}
-                onClick={() => handleDelete("delete_for_me")}
+                onClick={() => handleDelete("clear_all_chat")}
               >
-                Delete for me
+                Clear All Chat
               </Button>
             </>
           ) : (
-            <div className="w-full flex flex-col gap-2 justify-start">
-              {allActions.map((action) => {
-                return (
+            <>
+              {userDetail?.id !== sender_id ? (
+                <>
+                  <DialogClose asChild>
+                    <Button>Cancel</Button>
+                  </DialogClose>
                   <Button
                     disabled={isPending}
-                    key={action}
-                    onClick={() => handleDelete(action)}
+                    variant={"outline"}
+                    onClick={() => handleDelete("delete_for_me")}
                   >
-                    {action}
+                    Delete for me
                   </Button>
-                );
-              })}
-              <DialogClose asChild>
-                <Button variant={"outline"}>Cancel</Button>
-              </DialogClose>
-            </div>
+                </>
+              ) : (
+                <div className="w-full flex flex-col gap-2 justify-start">
+                  {allActions
+                    .filter((el) => el !== "clear_all_chat")
+                    .map((action) => {
+                      return (
+                        <Button
+                          disabled={isPending}
+                          key={action}
+                          onClick={() => handleDelete(action)}
+                          className="capitalize"
+                        >
+                          {action.replaceAll("_", " ")}
+                        </Button>
+                      );
+                    })}
+                  <DialogClose asChild>
+                    <Button variant={"outline"}>Cancel</Button>
+                  </DialogClose>
+                </div>
+              )}
+            </>
           )}
         </DialogFooter>
       </DialogContent>

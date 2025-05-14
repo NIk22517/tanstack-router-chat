@@ -12,7 +12,7 @@ import {
 import { useEffect } from "react";
 import { useMarkRead } from "./_chat/(apiCalls)";
 import type { AttachmentType } from "./_chat/$chat_id.index";
-import { FileImage } from "lucide-react";
+import { FileImage, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ChatMember {
@@ -190,9 +190,17 @@ function RouteComponent() {
                 }}
               >
                 <div className="flex flex-row gap-2 items-center">
-                  <UserAvatar fallback={el.members[0].name} />
+                  <UserAvatar
+                    fallback={
+                      el.chat_type === "group" ? <Users /> : el.members[0].name
+                    }
+                  />
                   <div className="flex flex-col gap-0.5">
-                    <Label>{el.members[0].name}</Label>
+                    <Label>
+                      {el.chat_type === "group"
+                        ? el.chat_name
+                        : el.members[0].name}
+                    </Label>
                     {el.last_message && (
                       <>
                         {el.last_message.attachments.length > 0 ? (

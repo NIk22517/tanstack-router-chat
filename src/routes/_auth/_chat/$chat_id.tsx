@@ -4,7 +4,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import type { ChatItem } from "../_chat";
 import { Label } from "@/components/ui/label";
 import { UserAvatar } from "@/components/user-avatar";
-import { SendHorizontal } from "lucide-react";
+import { SendHorizontal, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
@@ -19,6 +19,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AvatarImage, Avatar } from "@/components/ui/avatar";
 import { key, useChatState } from "@/hooks/useChatState";
 import { ReplyData } from "./(ReplyData)";
+import { Options } from "./(Options)";
 
 export const getChatHeader = async (chat_id: string, token?: string) => {
   const res = await services.chatServices.singleChatList({ chat_id, token });
@@ -115,19 +116,39 @@ function RouteComponent() {
 
   return (
     <div className="w-full flex flex-col items-start">
-      <div className="w-full p-2 border-b-1 border-gray-200">
-        {data.members.map((el) => {
-          if (userDetail?.id === el.id) return null;
-          return (
-            <div key={el.id} className="flex flex-row gap-2">
-              <UserAvatar fallback={el.name} className="w-10 h-10" />
-              <div className="flex flex-col gap-1">
-                <Label>{el.name}</Label>
-                <Label>{el.email}</Label>
-              </div>
+      <div className="w-full p-2 border-b-1 border-gray-200 flex justify-between">
+        {data.chat_type === "group" ? (
+          <div className="flex flex-row gap-2">
+            <UserAvatar fallback={<Users />} className="w-10 h-10" />
+            <div className="flex flex-col gap-1">
+              <Label>{data.chat_name}</Label>
+              <Label className="text-ellipsis line-clamp-1">
+                {data.members.map((el) => el.name).join(", ")}
+              </Label>
             </div>
-          );
-        })}
+          </div>
+        ) : (
+          <>
+            {data.members.map((el) => {
+              if (userDetail?.id === el.id) return null;
+              return (
+                <div key={el.id} className="flex flex-row gap-2">
+                  <UserAvatar fallback={el.name} className="w-10 h-10" />
+                  <div className="flex flex-col gap-1">
+                    <Label>{el.name}</Label>
+                    <Label>{el.email}</Label>
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        )}
+        <Options
+          data={{
+            chat_id: Number(chat_id),
+            disable_clear_all: data?.last_message === null,
+          }}
+        />
       </div>
       {files.length > 0 ? (
         <div className="w-full h-full py-2 px-4 flex justify-center items-center overflow-hidden">
