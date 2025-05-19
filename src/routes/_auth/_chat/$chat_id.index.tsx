@@ -28,6 +28,7 @@ export type AttachmentType = {
   placeholder: false;
   url: string;
   secure_url: string;
+  original_filename: string;
 };
 
 export interface ChatMessage {

@@ -12,12 +12,11 @@ export const Route = createFileRoute("/login")({
   beforeLoad: (ctx) => {
     if (ctx.context.userDetail?.token) {
       throw redirect({
-        to: "/user/$user_id",
-        params: { user_id: "3" },
+        to: "/",
       });
     }
   },
-  component: RouteComponent,
+  component: RouteLogIn,
 });
 
 export const logSchema = z.object({
@@ -36,7 +35,7 @@ export const logSchema = z.object({
 
 type LogSchema = z.infer<typeof logSchema>;
 
-function RouteComponent() {
+export function RouteLogIn() {
   const navigate = Route.useNavigate();
   const { setItem } = useLocalStorage("auth");
   const { mutate } = useMutation({

@@ -96,8 +96,24 @@ export const SingleMessage = ({ message, isYou }: MessageProps) => {
                               />
                             </Avatar>
                           ) : (
-                            <div className="bg-white p-2 text-black rounded shadow">
-                              {JSON.stringify(attachment)}
+                            <div
+                              className="bg-white p-3 text-black rounded shadow flex items-center gap-3 cursor-pointer hover:bg-gray-100"
+                              onClick={() =>
+                                window.open(attachment.secure_url, "_blank")
+                              }
+                            >
+                              <span
+                                role="img"
+                                aria-label="file"
+                                className="text-xl"
+                              >
+                                📄
+                              </span>
+
+                              {/* File Name */}
+                              <span className="truncate max-w-[200px]">
+                                {attachment.original_filename}
+                              </span>
                             </div>
                           )}
                         </div>
