@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, vi, it } from "vitest";
-import { renderWithContext } from "./test-utils";
+import { renderWithContext, mockNavigate } from "./test-utils";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { RouteLogIn } from "@/routes/login";
@@ -12,18 +12,6 @@ const setupLoginForm = async () => {
   const submitButton = await screen.findByRole("button", { name: /submit/i });
   return { emailInput, passwordInput, submitButton };
 };
-
-const mockNavigate = vi.fn();
-
-vi.mock("@tanstack/react-router", async () => {
-  const actual = await vi.importActual<typeof import("@tanstack/react-router")>(
-    "@tanstack/react-router"
-  );
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
 
 describe("Log In Page", () => {
   beforeEach(() => {
@@ -103,6 +91,27 @@ describe("Log In Page", () => {
           "password123"
         );
         expect(mockNavigate).toHaveBeenCalled();
+      });
+    });
+  });
+
+  it("calls login mutation and fails", () => {
+    waitFor(async () => {
+      const { emailInput, passwordInput, submitButton } =
+        await setupLoginForm();
+
+      fireEvent.change(emailInput, { target: { value: "test@test.com" } });
+      fireEvent.change(passwordInput, { target: { value: "password123" } });
+      await waitFor(() => {
+        expect(submitButton).toBeEnabled();
+      });
+      fireEvent.click(submitButton);
+      const mockLogin = vi.fn().mockRejectedValue(new Error("Login failed"));
+      services.authServices.logIn = mockLogin;
+
+      await waitFor(() => {
+        expect(mockLogin).toHaveBeenCalledWith("test@test.com", "password123");
+        expect(mockNavigate).not.toHaveBeenCalled();
       });
     });
   });

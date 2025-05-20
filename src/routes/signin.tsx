@@ -10,7 +10,7 @@ import { services } from "@/services";
 import { useLocalStorage } from "@/hooks";
 
 export const Route = createFileRoute("/signin")({
-  component: RouteComponent,
+  component: SignInRoute,
 });
 
 const signinSchema = z
@@ -21,7 +21,7 @@ const signinSchema = z
 
 export type SignSchema = z.infer<typeof signinSchema>;
 
-function RouteComponent() {
+export function SignInRoute() {
   const { setItem } = useLocalStorage("auth");
   const navigate = Route.useNavigate();
   const { mutate } = useMutation({

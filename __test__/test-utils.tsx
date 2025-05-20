@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
 import type { JSX } from "react";
+import { vi } from "vitest";
 
 async function createTestRouter(component: () => JSX.Element) {
   const rootRoute = createRootRoute({
@@ -32,3 +33,15 @@ export async function renderWithContext(component: () => JSX.Element) {
   const router = await createTestRouter(component);
   return render(<RouterProvider router={router} />);
 }
+
+export const mockNavigate = vi.fn();
+
+vi.mock("@tanstack/react-router", async () => {
+  const actual = await vi.importActual<typeof import("@tanstack/react-router")>(
+    "@tanstack/react-router"
+  );
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
