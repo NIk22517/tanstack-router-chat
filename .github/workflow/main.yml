@@ -4,11 +4,7 @@ on:
   push:
     branches:
       - production
-      - development
-  pull_request:
-    branches:
-      - production
-  workflow_dispatch:
+      - development # Now triggers on pushes to both development and production
 
 jobs:
   build:
@@ -20,7 +16,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "22" # Explicitly setting Node.js to version 22
 
       - name: Install dependencies
         run: npm install
@@ -33,11 +29,35 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: build # Ensures deployment only happens if the build job passes
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Deploy to production server
+        # This step will execute if the push is to 'production' branch
+        if: github.ref == 'refs/heads/production'
         run: |
           echo "Initiating deployment to production server..."
+          # !!! IMPORTANT !!!
+          # Add your actual commands to deploy to your production environment here.
+          # Examples:
+          # - Using SSH to connect to a server:
+          #   ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no user@your-production-server "cd /path/to/app && git pull && npm install --production && npm run build:prod && pm2 restart your-app"
+          # - Deploying to a cloud service like AWS S3 for static content:
+          #   aws s3 sync ./dist s3://your-production-bucket --delete
+          # - Running a custom deployment script:
+          #   ./deploy-production.sh
+
+      - name: Deploy to development server
+        # This step will execute if the push is to 'development' branch
+        if: github.ref == 'refs/heads/development'
+        run: |
+          echo "Initiating deployment to development server..."
+          # !!! IMPORTANT !!!
+          # Add your actual commands to deploy to your development environment here.
+          # These commands might be different from your production deployment.
+          # Examples:
+          # - ssh user@your-dev-server.com "cd /path/to/dev-app && git pull && npm install && npm run build:dev && systemctl restart your-dev-app"
+          # - aws s3 sync ./dist s3://your-development-bucket --delete
+          # - ./deploy-development.sh
