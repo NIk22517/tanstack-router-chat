@@ -5,7 +5,6 @@ import { routeTree } from "./routeTree.gen";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useLocalStorage } from "./hooks";
-import { useEffect, useState } from "react";
 import { useSocket } from "./hooks/useSocket";
 
 const queryClient = new QueryClient();
