@@ -56,18 +56,16 @@ export const ChatSummary = ({ open, chat_id, onClose }: ChatSummaryProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-4 pt-2 pb-4 bg-muted rounded border font-mono text-sm whitespace-pre-wrap min-h-[150px] max-h-60 overflow-y-auto">
-          {isStreaming && (
-            <div className="flex items-end justify-end w-full mb-1">
-              <Button
-                variant={"ghost"}
-                size="icon"
-                onClick={() => navigator.clipboard.writeText(summary)}
-                className="h-auto hover:bg-gray-300"
-              >
-                <Copy />
-              </Button>
-            </div>
+        <div className="relative px-4 pt-2 pb-4 bg-muted rounded border font-mono text-sm whitespace-pre-wrap min-h-[150px] max-h-60 overflow-y-auto">
+          {!isStreaming && summary && (
+            <Button
+              variant={"ghost"}
+              size="icon"
+              onClick={() => navigator.clipboard.writeText(summary)}
+              className="absolute top-2 right-2 h-auto hover:bg-gray-300"
+            >
+              <Copy />
+            </Button>
           )}
           {renderContent()}
         </div>
