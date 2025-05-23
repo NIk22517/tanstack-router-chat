@@ -35,7 +35,7 @@ export interface ChatMessage {
   chat_id: number;
   id: number;
   message: string;
-  attachments: AttachmentType[];
+  attachments: AttachmentType[] | null;
   sender_id: number;
   created_at: string;
   read_status: "read" | "unread";

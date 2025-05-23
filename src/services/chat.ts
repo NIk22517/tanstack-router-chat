@@ -48,4 +48,18 @@ export class ChatServices extends BaseService {
       this.buildConfig({ auth: values })
     );
   };
+
+  chatSummary = (values: AuthInfo & { chat_id: string }) => {
+    return this.instance.get(
+      `/ai/summary/${values.chat_id}`,
+      this.buildConfig({
+        auth: values,
+        customHeaders: {
+          Accept: "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      })
+    );
+  };
 }

@@ -203,7 +203,7 @@ function RouteComponent() {
                     </Label>
                     {el.last_message && (
                       <>
-                        {el.last_message.attachments.length > 0 ? (
+                        {el.last_message?.attachments?.length > 0 ? (
                           <>
                             {el.last_message.attachments[0].resource_type ===
                             "image" ? (

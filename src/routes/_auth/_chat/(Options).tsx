@@ -13,6 +13,7 @@ import { Menu } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { DeleteMessage } from "./(DeleteMessage)";
 import { useState } from "react";
+import { ChatSummary } from "./(ChatSummary)";
 
 interface OptionsProps {
   data: {
@@ -27,7 +28,7 @@ export const Options = ({
   const { getItem, removeItem } = useLocalStorage("auth");
   const navigate = useNavigate();
   const userDetail = getItem();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<"delete" | "summary" | "none">("none");
   if (!userDetail) return null;
   return (
     <>
@@ -55,11 +56,20 @@ export const Options = ({
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
-                setOpen(true);
+                setOpen("delete");
               }}
               disabled={disable_clear_all}
             >
               Clear All Messages
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={() => {
+                setOpen("summary");
+              }}
+              disabled={disable_clear_all}
+            >
+              Generate Chat Summary
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
@@ -81,13 +91,21 @@ export const Options = ({
         data={{
           chat_id: chat_id,
           message_ids: [],
-          open: open,
+          open: open === "delete",
           sender_id: userDetail.id,
         }}
         onClose={() => {
-          setOpen(false);
+          setOpen("none");
         }}
         action="default"
+      />
+
+      <ChatSummary
+        open={open === "summary"}
+        chat_id={chat_id}
+        onClose={() => {
+          setOpen("none");
+        }}
       />
     </>
   );

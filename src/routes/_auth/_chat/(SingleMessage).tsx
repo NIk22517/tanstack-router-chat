@@ -70,7 +70,7 @@ export const SingleMessage = ({ message, isYou }: MessageProps) => {
                 )}
               >
                 <ReplyData message={message.reply_data as ChatMessage} />
-                {message.attachments.length > 0 && (
+                {message.attachments && message.attachments.length > 0 && (
                   <div
                     className="grid gap-2 mt-2"
                     style={{
@@ -121,7 +121,9 @@ export const SingleMessage = ({ message, isYou }: MessageProps) => {
                     })}
                   </div>
                 )}
-                {message.message && <p>{message.message}</p>}
+                {message.message && (
+                  <p className="whitespace-pre-line">{message.message}</p>
+                )}
               </div>
             </ActionTooltip>
             <div
