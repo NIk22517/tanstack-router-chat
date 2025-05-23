@@ -22,7 +22,7 @@ export const ReplyData = ({ message, className, handleClose }: ReplyProps) => {
     >
       <div className="pl-2 pr-2">
         <p className="text-purple-500">{message?.sender_name}</p>
-        {message.attachments.length > 0 && (
+        {message.attachments && message.attachments.length > 0 && (
           <div
             className="grid gap-2 mt-2 mb-2"
             style={{
