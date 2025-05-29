@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 export const useChatSummaryStream = ({
   chat_id,
@@ -25,20 +25,27 @@ export const useChatSummaryStream = ({
     };
   }, []);
 
+  const flushBuffer = useCallback(() => {
+    if (!isMounted.current) return;
+    if (bufferRef.current.length > 0) {
+      setSummary((prev) => prev + bufferRef.current);
+      bufferRef.current = "";
+    }
+    animationFrameId.current = requestAnimationFrame(flushBuffer);
+  }, []);
+
+  const stopFlushing = () => {
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+      animationFrameId.current = null;
+    }
+  };
+
   useEffect(() => {
     if (!enabled || !chat_id || !token) return;
 
     const controller = new AbortController();
     const decoder = new TextDecoder("utf-8");
-
-    const flushBuffer = () => {
-      if (!isMounted.current) return;
-      if (bufferRef.current.length > 0) {
-        setSummary((prev) => prev + bufferRef.current);
-        bufferRef.current = "";
-      }
-      animationFrameId.current = requestAnimationFrame(flushBuffer);
-    };
 
     const fetchSummary = async () => {
       setIsStreaming(true);
@@ -76,8 +83,7 @@ export const useChatSummaryStream = ({
       } finally {
         setIsStreaming(false);
         if (animationFrameId.current) {
-          cancelAnimationFrame(animationFrameId.current);
-          animationFrameId.current = null;
+          stopFlushing();
 
           if (bufferRef.current.length > 0) {
             setSummary((prev) => prev + bufferRef.current);
@@ -91,10 +97,7 @@ export const useChatSummaryStream = ({
 
     return () => {
       controller.abort();
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-        animationFrameId.current = null;
-      }
+      stopFlushing();
     };
   }, [chat_id, token, enabled]);
 

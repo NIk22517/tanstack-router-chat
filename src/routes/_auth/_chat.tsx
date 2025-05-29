@@ -10,10 +10,18 @@ import {
   useMatches,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useMarkRead } from "./_chat/(apiCalls)";
+import { useMarkRead, usePinUnpinChat } from "./_chat/(apiCalls)";
 import type { AttachmentType } from "./_chat/$chat_id.index";
-import { FileImage, Users } from "lucide-react";
+import { Ellipsis, FileImage, PinOff, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export interface ChatMember {
   id: number;
@@ -35,6 +43,7 @@ export interface ChatItem {
   members: ChatMember[];
   last_message: LastMessage | null;
   unread_count: string;
+  is_pinned: boolean;
 }
 
 export interface ChatListPageParam {
@@ -86,6 +95,7 @@ function RouteComponent() {
     ?.chat_id;
 
   const { mutate } = useMarkRead();
+  const { mutate: mutatePin } = usePinUnpinChat();
   const { data } = useSuspenseInfiniteQuery({
     queryKey: ["chat_list"],
     queryFn: chatListQueryFn(userDetail?.token),
@@ -110,6 +120,24 @@ function RouteComponent() {
           return {
             ...chatItem,
             unread_count: "0",
+          };
+        }
+        return chatItem;
+      })
+    );
+    queryClient.setQueryData(["chat_list"], {
+      ...data,
+      pages: updatedPages,
+    });
+  };
+
+  const updatePinChat = (chat_id: number) => {
+    const updatedPages = data.pages.map((pageGroup) =>
+      pageGroup.map((chatItem) => {
+        if (chatItem.chat_id === chat_id) {
+          return {
+            ...chatItem,
+            is_pinned: !chatItem.is_pinned,
           };
         }
         return chatItem;
@@ -176,7 +204,7 @@ function RouteComponent() {
                 params={{
                   chat_id: el.chat_id?.toString(),
                 }}
-                className="cursor-pointer p-2 flex flex-row gap-2 justify-between items-center border-1 border-gray-300 rounded-xl hover:bg-blue-100"
+                className="group cursor-pointer p-2 flex flex-row gap-2 justify-between items-center border-1 border-gray-300 rounded-xl hover:bg-blue-100"
                 activeProps={{
                   className: "bg-blue-100",
                 }}
@@ -226,6 +254,35 @@ function RouteComponent() {
                     )}
                   </div>
                 </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size={"sm"}>
+                      {el.is_pinned ? <PinOff /> : <Ellipsis />}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="p-2 cursor-pointer">
+                    <DropdownMenuItem
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        mutatePin(
+                          {
+                            token: userDetail?.token,
+                            chat_id: el.chat_id,
+                            pinned: !el.is_pinned,
+                          },
+                          {
+                            onSuccess: () => {
+                              updatePinChat(el.chat_id);
+                            },
+                          }
+                        );
+                      }}
+                    >
+                      {el.is_pinned ? "Un-Pin" : "Pin"} Chat
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 {el.unread_count !== "0" && el.unread_count && (
                   <Badge variant={"success"} className="rounded-4xl h-6 w-6">

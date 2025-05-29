@@ -38,3 +38,22 @@ export const useDeleteMessage = () => {
     },
   });
 };
+
+export const usePinUnpinChat = () => {
+  return useMutation({
+    mutationFn: async (data: {
+      chat_id: number;
+      pinned: boolean;
+      token?: string;
+    }) => {
+      const res = await services.chatServices.pinUnpinChat({
+        token: data.token,
+        data: { chat_id: data.chat_id, pinned: data.pinned },
+      });
+      if (res.status === 200) {
+        return res.data.data;
+      }
+      throw new Error(res?.data?.message);
+    },
+  });
+};

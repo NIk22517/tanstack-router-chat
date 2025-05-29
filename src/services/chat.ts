@@ -62,4 +62,16 @@ export class ChatServices extends BaseService {
       })
     );
   };
+
+  pinUnpinChat = (
+    values: AuthInfo & { data: { chat_id: number; pinned: boolean } }
+  ) => {
+    return this.instance.post(
+      `/chat/pin`,
+      { data: values.data },
+      this.buildConfig({
+        auth: values,
+      })
+    );
+  };
 }

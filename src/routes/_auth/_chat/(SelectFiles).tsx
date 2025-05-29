@@ -19,7 +19,6 @@ export const SelectFiles = ({
     const files = event.target.files
       ? Array.from(event.target.files)
       : undefined;
-    console.log(files, "files");
     if (!files || files.length === 0) return;
     selectFiles(files);
   };
