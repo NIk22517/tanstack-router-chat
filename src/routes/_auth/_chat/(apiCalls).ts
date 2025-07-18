@@ -57,3 +57,35 @@ export const usePinUnpinChat = () => {
     },
   });
 };
+
+export const useScheduleMessage = () => {
+  return useMutation({
+    mutationFn: async ({
+      message,
+      chat_id,
+      token,
+      scheduled_at,
+    }: {
+      message: string;
+      chat_id: string;
+      token?: string;
+      scheduled_at: string;
+    }) => {
+      if (!message) return;
+      const formData = new FormData();
+      formData.append("chat_id", chat_id);
+      formData.append("message", message);
+      formData.append("scheduled_at", scheduled_at);
+
+      const res = await services.chatServices.scheduleMessage({
+        token,
+        data: formData,
+      });
+
+      if (res.status === 200) {
+        return res.data;
+      }
+      throw new Error(res?.data?.message);
+    },
+  });
+};

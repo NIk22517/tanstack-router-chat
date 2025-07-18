@@ -21,6 +21,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import moment from "moment";
 
 export interface ChatMember {
   id: number;
@@ -44,6 +45,21 @@ export interface ChatItem {
   unread_count: string;
   is_pinned: boolean;
 }
+
+const getTime = (time: string | null) => {
+  if (!time) return "";
+  const currentTime = moment();
+  const msgTime = moment(time);
+  if (msgTime) {
+    if (msgTime.isSame(currentTime, "day")) {
+      return msgTime.format("LT");
+    } else if (msgTime.isSame(currentTime.clone().subtract(1, "days"), "day")) {
+      return "Yesterday";
+    } else {
+      return msgTime.format("MMM DD, YYYY");
+    }
+  }
+};
 
 export interface ChatListPageParam {
   limit: number;
@@ -254,40 +270,53 @@ function RouteComponent() {
                   </div>
                 </div>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size={"sm"}>
-                      {el.is_pinned ? <PinOff /> : <Ellipsis />}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="p-2 cursor-pointer">
-                    <DropdownMenuItem
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        mutatePin(
-                          {
-                            token: userDetail?.token,
-                            chat_id: el.chat_id,
-                            pinned: !el.is_pinned,
-                          },
-                          {
-                            onSuccess: () => {
-                              updatePinChat(el.chat_id);
-                            },
-                          }
-                        );
-                      }}
-                    >
-                      {el.is_pinned ? "Un-Pin" : "Pin"} Chat
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {el.unread_count !== "0" && el.unread_count && (
-                  <Badge variant={"success"} className="rounded-4xl h-6 w-6">
-                    {el.unread_count}
-                  </Badge>
-                )}
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-0.5">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size={"sm"} className="h-auto">
+                          {el.is_pinned ? (
+                            <PinOff className="size-3 rotate-45" />
+                          ) : (
+                            <Ellipsis className="size-3" />
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="p-2 cursor-pointer">
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            mutatePin(
+                              {
+                                token: userDetail?.token,
+                                chat_id: el.chat_id,
+                                pinned: !el.is_pinned,
+                              },
+                              {
+                                onSuccess: () => {
+                                  updatePinChat(el.chat_id);
+                                },
+                              }
+                            );
+                          }}
+                        >
+                          {el.is_pinned ? "Un-Pin" : "Pin"} Chat
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    {el.unread_count !== "0" && el.unread_count && (
+                      <Badge
+                        variant={"success"}
+                        className="rounded-4xl h-6 w-6"
+                      >
+                        {el.unread_count}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-[10px] whitespace-nowrap">
+                    {getTime(el?.last_message?.created_at ?? null)}
+                  </p>
+                </div>
               </Link>
             );
           })}

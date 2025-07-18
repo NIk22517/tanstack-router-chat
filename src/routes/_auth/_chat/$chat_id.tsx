@@ -20,6 +20,11 @@ import { AvatarImage, Avatar } from "@/components/ui/avatar";
 import { key, useChatState } from "@/hooks/useChatState";
 import { ReplyData } from "./(ReplyData)";
 import { Options } from "./(Options)";
+import { useLongPress } from "@/hooks/useLongPress";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { DateTimePicker24h } from "@/components/ui/dateTimePicker";
+import { useScheduleMessage } from "./(apiCalls)";
+import moment from "moment";
 
 export const getChatHeader = async (chat_id: string, token?: string) => {
   const res = await services.chatServices.singleChatList({ chat_id, token });
@@ -46,6 +51,7 @@ function RouteComponent() {
   const { chat_id } = Route.useParams();
   const { userDetail } = Route.useRouteContext();
   const { data: stateData, resetData } = useChatState(key);
+  const { mutate: mutateSchedule } = useScheduleMessage();
 
   const { data } = useSuspenseQuery({
     queryKey: ["get_chat_header", chat_id],
@@ -220,14 +226,65 @@ function RouteComponent() {
           />
           <form.Subscribe selector={(state) => [state.canSubmit]}>
             {([canSubmit]) => {
+              const [popoverOpen, setPopoverOpen] = useState(false);
+              const [longPressHandlers, wasLongPressed] = useLongPress({
+                onLongPress: () => {
+                  setPopoverOpen(true);
+                },
+              });
+
+              const handleClick = (e: React.MouseEvent) => {
+                if (wasLongPressed()) {
+                  e.preventDefault();
+                  return;
+                }
+                form.handleSubmit();
+              };
+
+              const handleSchedule = (date: Date) => {
+                const utcDateTime = moment(date).utc().toISOString();
+
+                console.log("📅 Schedule this message for:", utcDateTime);
+
+                mutateSchedule(
+                  {
+                    chat_id,
+                    message: form.state.values.message,
+                    scheduled_at: utcDateTime,
+                    token: userDetail?.token,
+                  },
+                  {
+                    onSuccess: () => {
+                      setPopoverOpen(false);
+                      form.reset({
+                        message: "",
+                      });
+                    },
+                  }
+                );
+              };
+
               return (
-                <Button
-                  type="submit"
-                  disabled={!canSubmit}
-                  onClick={form.handleSubmit}
-                >
-                  <SendHorizontal />
-                </Button>
+                <Drawer open={popoverOpen} onOpenChange={setPopoverOpen}>
+                  <Button
+                    onClick={handleClick}
+                    {...longPressHandlers}
+                    disabled={!canSubmit}
+                  >
+                    <SendHorizontal />
+                  </Button>
+
+                  <DrawerContent className="w-full flex flex-col items-center pb-10">
+                    <h2 className="text-lg font-semibold mb-4">
+                      Schedule Message
+                    </h2>
+                    <DateTimePicker24h
+                      onSchedule={(date) => {
+                        handleSchedule(date);
+                      }}
+                    />
+                  </DrawerContent>
+                </Drawer>
               );
             }}
           </form.Subscribe>

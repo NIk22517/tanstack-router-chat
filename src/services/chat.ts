@@ -74,4 +74,12 @@ export class ChatServices extends BaseService {
       })
     );
   };
+
+  scheduleMessage = (values: AuthInfo & { data: FormData }) => {
+    return this.instance.post(
+      "/chat/messages/schedule",
+      values.data,
+      this.buildConfig({ isMultipart: true, auth: values })
+    );
+  };
 }
