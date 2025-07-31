@@ -1,14 +1,14 @@
 import { cn } from "@/lib/utils";
-import { type ChatMessage } from "./$chat_id.index";
+import { type ChatMessage } from "@/routes/_auth/_chat/$chat_id.index";
 import { ActionTooltip } from "@/components/action-tooltip";
-import { DeleteMessage } from "./(DeleteMessage)";
+import { DeleteMessage } from "@/components/chat/DeleteMessage";
 import { CheckCheck, Reply, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { useChatState, key } from "@/hooks/useChatState";
-import { ReplyData } from "./(ReplyData)";
+import { ReplyData } from "@/components/chat/ReplyData";
 
 interface MessageProps {
   message: ChatMessage;

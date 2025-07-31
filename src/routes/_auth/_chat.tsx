@@ -10,7 +10,7 @@ import {
   useMatches,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useMarkRead, usePinUnpinChat } from "./_chat/(apiCalls)";
+import { useMarkRead, usePinUnpinChat } from "@/components/chat/apiCalls";
 import type { AttachmentType } from "./_chat/$chat_id.index";
 import { Ellipsis, FileImage, PinOff, Users } from "lucide-react";
 import { cn } from "@/lib/utils";

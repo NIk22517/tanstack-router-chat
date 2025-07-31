@@ -8,7 +8,7 @@ import { SendHorizontal, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
-import { SelectFiles } from "./(SelectFiles)";
+import { SelectFiles } from "@/components/chat/SelectFiles";
 import { useState } from "react";
 import {
   Carousel,
@@ -18,12 +18,12 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { AvatarImage, Avatar } from "@/components/ui/avatar";
 import { key, useChatState } from "@/hooks/useChatState";
-import { ReplyData } from "./(ReplyData)";
-import { Options } from "./(Options)";
+import { ReplyData } from "@/components/chat/ReplyData";
+import { Options } from "@/components/chat/Options";
 import { useLongPress } from "@/hooks/useLongPress";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { DateTimePicker24h } from "@/components/ui/dateTimePicker";
-import { useScheduleMessage } from "./(apiCalls)";
+import { useScheduleMessage } from "@/components/chat/apiCalls";
 import moment from "moment";
 
 export const getChatHeader = async (chat_id: string, token?: string) => {

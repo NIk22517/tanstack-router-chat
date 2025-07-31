@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useLocalStorage } from "@/hooks";
-import { useDeleteMessage } from "./(apiCalls)";
+import { useDeleteMessage } from "@/components/chat/apiCalls";
 
 const allActions = [
   "delete_for_me",

@@ -11,9 +11,9 @@ import {
 import { useLocalStorage } from "@/hooks";
 import { Menu } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { DeleteMessage } from "./(DeleteMessage)";
+import { DeleteMessage } from "@/components/chat/DeleteMessage";
 import { useState } from "react";
-import { ChatSummary } from "./(ChatSummary)";
+import { ChatSummary } from "@/components/chat/ChatSummary";
 
 interface OptionsProps {
   data: {
@@ -70,6 +70,19 @@ export const Options = ({
               disabled={disable_clear_all}
             >
               Generate Chat Summary
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={() => {
+                navigate({
+                  to: "/$chat_id/schedule",
+                  params: {
+                    chat_id: chat_id?.toString(),
+                  },
+                });
+              }}
+            >
+              Check Schedule Messages
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />

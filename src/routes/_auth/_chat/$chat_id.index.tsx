@@ -6,8 +6,8 @@ import { useEffect } from "react";
 import { useMessageProcessor } from "@/hooks/useMessagesProcess";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { SingleMessage } from "./(SingleMessage)";
-import { useMarkRead } from "./(apiCalls)";
+import { SingleMessage } from "@/components/chat/SingleMessage";
+import { useMarkRead } from "@/components/chat/apiCalls";
 
 export type AttachmentType = {
   asset_id: string;
