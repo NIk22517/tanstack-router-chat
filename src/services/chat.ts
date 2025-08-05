@@ -85,8 +85,8 @@ export class ChatServices extends BaseService {
 
   getScheduleMessages = (values: AuthInfo & { chat_id: string }) => {
     return this.instance.get(
-      "/chat/messages/schedule",
-      this.buildConfig({ isMultipart: true, auth: values })
+      "/chat/schedule/" + values.chat_id,
+      this.buildConfig({ auth: values })
     );
   };
 }

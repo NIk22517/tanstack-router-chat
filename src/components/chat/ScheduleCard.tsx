@@ -6,14 +6,14 @@ import {
   CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "../ui/card";
 import { Label } from "../ui/label";
 import { ActionTooltip } from "../action-tooltip";
+import type { ScheduleMessgaeType } from "@/routes/_auth/$chat_id.schedule";
 
-export const ScheduleCard = ({ data }: { data: any }) => {
+export const ScheduleCard = ({ data }: { data: ScheduleMessgaeType }) => {
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
@@ -32,7 +32,7 @@ export const ScheduleCard = ({ data }: { data: any }) => {
               {data.status}
             </CardDescription>
           </div>
-          {data.status !== "complated" && (
+          {data.status !== "completed" && (
             <CardAction className="flex gap-1">
               <ActionTooltip content="Edit Schedule">
                 <Button variant="ghost" size="icon">
@@ -77,17 +77,6 @@ export const ScheduleCard = ({ data }: { data: any }) => {
           <div>
             <Label>Completed At</Label>
             <p>{moment(data.completed_at).format("MMM D, YYYY, h:mm A")}</p>
-          </div>
-        )}
-
-        {data.error_message && (
-          <div>
-            <Label>Error Message</Label>
-            <p className="text-red-500">{data.error_message}</p>
-            <div className="mt-2">
-              <Label>Retry Count</Label>
-              <p>{data.retry_count}</p>
-            </div>
           </div>
         )}
       </CardContent>

@@ -89,18 +89,3 @@ export const useScheduleMessage = () => {
     },
   });
 };
-
-// export const useGetScheduleChatMessages = ({
-//   chat_id,
-//   token,
-// }: {
-//   chat_id: string;
-//   token: string | undefined;
-// }) => {
-//   return useQuery({
-//     queryKey: ["get_schedule_messages", chat_id],
-//     queryFn: async () => {
-//       const res = await services.chatServices.
-//     }
-//   });
-// };
