@@ -8,10 +8,14 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface DateTimePicker24hProps {
   onSchedule?: (date: Date) => void;
+  data?: Date;
 }
 
-export function DateTimePicker24h({ onSchedule }: DateTimePicker24hProps) {
-  const [date, setDate] = React.useState<Date>();
+export function DateTimePicker24h({
+  onSchedule,
+  data,
+}: DateTimePicker24hProps) {
+  const [date, setDate] = React.useState<Date | undefined>(data);
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
   const handleDateSelect = (selectedDate: Date | undefined) => {

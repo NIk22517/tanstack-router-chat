@@ -33,7 +33,7 @@ export const useSocket = <T = any>({
 
   useEffect(() => {
     if (!token) return;
-    const socketInstance = io("ws://192.168.1.33:8080", {
+    const socketInstance = io("ws://192.168.1.35:8080", {
       transports: ["websocket"],
       autoConnect: false,
       forceNew: true,

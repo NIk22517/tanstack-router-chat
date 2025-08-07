@@ -1,5 +1,6 @@
+import type { ScheduleMessgaeType } from "@/routes/_auth/$chat_id.schedule";
 import { services } from "@/services";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useMarkRead = () => {
   return useMutation({
@@ -86,6 +87,102 @@ export const useScheduleMessage = () => {
         return res.data;
       }
       throw new Error(res?.data?.message);
+    },
+  });
+};
+
+export const useDeleteScheduleMessage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      schedule_id,
+      token,
+    }: {
+      schedule_id: number;
+      token: string | undefined;
+      chat_id: string;
+    }) => {
+      if (!schedule_id) {
+        throw new Error("Schedule id not found");
+      }
+      const res = await services.chatServices.deleteScheduleMessage({
+        schedule_id,
+        token,
+      });
+
+      if (res.status === 200) {
+        return res.data.data;
+      }
+      throw new Error(res?.data?.message);
+    },
+    onSettled: async (data, error, variables, context) => {
+      if (error) {
+        console.error(error.message);
+      } else {
+        await queryClient.setQueryData(
+          ["get_schedule_messages", variables.chat_id],
+          (old: ScheduleMessgaeType[]) => {
+            if (old) {
+              return old.filter((el) => el.id !== variables.schedule_id);
+            }
+          }
+        );
+      }
+    },
+  });
+};
+
+export const useEditSchedule = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      schedule_id,
+      scheduled_at,
+      message,
+      token,
+    }: {
+      message?: string;
+      scheduled_at: string;
+      schedule_id: number;
+      token?: string;
+      chat_id: string;
+    }) => {
+      const res = await services.chatServices.editScheduleMessage({
+        data: {
+          schedule_id,
+          message,
+          scheduled_at,
+        },
+        token,
+      });
+
+      if (res.status === 200) {
+        return res.data.data;
+      }
+      throw new Error(res?.data?.message);
+    },
+    onSettled: async (data, error, variables, context) => {
+      if (error) {
+      } else {
+        await queryClient.setQueryData(
+          ["get_schedule_messages", variables.chat_id],
+          (old: ScheduleMessgaeType[]) => {
+            if (old) {
+              return old.map((el) => {
+                if (el.id === variables.schedule_id) {
+                  return {
+                    ...el,
+                    scheduled_at: variables.scheduled_at,
+                    message: variables.message,
+                  };
+                }
+                return el;
+              });
+            }
+          }
+        );
+      }
     },
   });
 };

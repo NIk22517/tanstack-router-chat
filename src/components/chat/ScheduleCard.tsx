@@ -1,5 +1,5 @@
 import moment from "moment";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   Card,
@@ -12,6 +12,8 @@ import {
 import { Label } from "../ui/label";
 import { ActionTooltip } from "../action-tooltip";
 import type { ScheduleMessgaeType } from "@/routes/_auth/$chat_id.schedule";
+import { DeleteScheduleMessage } from "./DeleteScheduleMessgae";
+import { EditScheduleMessge } from "./EditScheduleMessage";
 
 export const ScheduleCard = ({ data }: { data: ScheduleMessgaeType }) => {
   return (
@@ -34,16 +36,18 @@ export const ScheduleCard = ({ data }: { data: ScheduleMessgaeType }) => {
           </div>
           {data.status !== "completed" && (
             <CardAction className="flex gap-1">
-              <ActionTooltip content="Edit Schedule">
-                <Button variant="ghost" size="icon">
-                  <Pencil className="w-4 h-4" />
-                </Button>
-              </ActionTooltip>
-              <ActionTooltip content="Delete Schedule">
-                <Button variant="ghost" size="icon">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </ActionTooltip>
+              <EditScheduleMessge
+                data={{
+                  message: data.message,
+                  schedule_id: data.id,
+                  scheduled_at: data.scheduled_at,
+                  chat_id: data.chat_id,
+                }}
+              />
+              <DeleteScheduleMessage
+                schedule_id={data.id}
+                chat_id={data.chat_id}
+              />
             </CardAction>
           )}
         </div>

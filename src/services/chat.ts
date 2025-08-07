@@ -89,4 +89,23 @@ export class ChatServices extends BaseService {
       this.buildConfig({ auth: values })
     );
   };
+
+  deleteScheduleMessage = (values: AuthInfo & { schedule_id: number }) => {
+    return this.instance.delete(
+      `chat/schedule/${values.schedule_id}`,
+      this.buildConfig({ auth: values })
+    );
+  };
+
+  editScheduleMessage = (
+    values: AuthInfo & {
+      data: { message?: string; scheduled_at?: string; schedule_id: number };
+    }
+  ) => {
+    return this.instance.post(
+      `/chat/schedule`,
+      { data: values.data },
+      this.buildConfig({ auth: values })
+    );
+  };
 }
