@@ -28,11 +28,20 @@ export const Options = ({
   const { getItem, removeItem } = useLocalStorage("auth");
   const navigate = useNavigate();
   const userDetail = getItem();
-  const [open, setOpen] = useState<"delete" | "summary" | "none">("none");
+
+  // control modal type
+  const [modalOpen, setModalOpen] = useState<"delete" | "summary" | "none">(
+    "none"
+  );
+
+  // control dropdown open state
+  const [menuOpen, setMenuOpen] = useState(false);
+
   if (!userDetail) return null;
+
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline">
             <Menu />
@@ -43,20 +52,20 @@ export const Options = ({
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem
-              onClick={() => {
+              onSelect={() => {
                 navigate({
                   to: "/user/$user_id",
-                  params: {
-                    user_id: userDetail.id.toString(),
-                  },
+                  params: { user_id: userDetail.id.toString() },
                 });
               }}
             >
               Profile
             </DropdownMenuItem>
+
             <DropdownMenuItem
-              onClick={() => {
-                setOpen("delete");
+              onSelect={() => {
+                setMenuOpen(false); // close menu
+                setModalOpen("delete");
               }}
               disabled={disable_clear_all}
             >
@@ -64,8 +73,9 @@ export const Options = ({
             </DropdownMenuItem>
 
             <DropdownMenuItem
-              onClick={() => {
-                setOpen("summary");
+              onSelect={() => {
+                setMenuOpen(false);
+                setModalOpen("summary");
               }}
               disabled={disable_clear_all}
             >
@@ -73,12 +83,10 @@ export const Options = ({
             </DropdownMenuItem>
 
             <DropdownMenuItem
-              onClick={() => {
+              onSelect={() => {
                 navigate({
                   to: "/$chat_id/schedule",
-                  params: {
-                    chat_id: chat_id?.toString(),
-                  },
+                  params: { chat_id: chat_id?.toString() },
                 });
               }}
             >
@@ -87,7 +95,7 @@ export const Options = ({
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onClick={() => {
+            onSelect={() => {
               removeItem();
               navigate({
                 to: "/login",
@@ -100,25 +108,22 @@ export const Options = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
       <DeleteMessage
         data={{
-          chat_id: chat_id,
+          chat_id,
           message_ids: [],
-          open: open === "delete",
+          open: modalOpen === "delete",
           sender_id: userDetail.id,
         }}
-        onClose={() => {
-          setOpen("none");
-        }}
+        onClose={() => setModalOpen("none")}
         action="default"
       />
 
       <ChatSummary
-        open={open === "summary"}
+        open={modalOpen === "summary"}
         chat_id={chat_id}
-        onClose={() => {
-          setOpen("none");
-        }}
+        onClose={() => setModalOpen("none")}
       />
     </>
   );

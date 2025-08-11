@@ -1,5 +1,5 @@
 import { services } from "@/services";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import type { ChatItem } from "../_chat";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,24 @@ export const getChatHeader = async (chat_id: string, token?: string) => {
   throw new Error(res?.data?.message);
 };
 
+type SuggetionsType = {
+  suggestions: string[];
+};
+
+export const getAiSuggestionReply = async ({
+  chat_id,
+  token,
+}: {
+  chat_id: string;
+  token?: string;
+}) => {
+  const res = await services.aiServices.aiSuggestion({ chat_id, token });
+  if (res.status === 200) {
+    return res.data as SuggetionsType;
+  }
+  throw new Error(res?.data?.message);
+};
+
 export const Route = createFileRoute("/_auth/_chat/$chat_id")({
   beforeLoad: async (ctx) => {
     const { context, params } = ctx;
@@ -56,6 +74,18 @@ function RouteComponent() {
   const { data } = useSuspenseQuery({
     queryKey: ["get_chat_header", chat_id],
     queryFn: () => getChatHeader(chat_id, userDetail?.token),
+    staleTime: Infinity,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: suggestions } = useQuery({
+    queryKey: ["get_last_message_suggestion_reply", chat_id],
+    queryFn: () =>
+      getAiSuggestionReply({
+        chat_id: chat_id,
+        token: userDetail?.token,
+      }),
     staleTime: Infinity,
     retry: false,
     refetchOnWindowFocus: false,
@@ -185,6 +215,25 @@ function RouteComponent() {
         </div>
       ) : (
         <Outlet />
+      )}
+
+      {suggestions && suggestions?.suggestions?.length > 0 && (
+        <div className="flex flex-row gap-2 flex-nowrap items-center pb-2 scrollbar-hide">
+          {suggestions.suggestions?.map((suggestion, i) => {
+            return (
+              <Button
+                key={`${i + 1}`}
+                size={"sm"}
+                onClick={() => {
+                  form.setFieldValue("message", suggestion);
+                }}
+                variant={"outline"}
+              >
+                {suggestion}
+              </Button>
+            );
+          })}
+        </div>
       )}
 
       <div className="w-full mt-auto border-1 border-gray-200 p-2">

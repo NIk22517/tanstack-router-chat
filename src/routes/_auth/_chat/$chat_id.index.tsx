@@ -212,6 +212,13 @@ function RouteComponent() {
           token: userDetail?.token,
         });
       }
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          "get_last_message_suggestion_reply",
+          eventdata.chat_id?.toString(),
+        ],
+      });
     });
   }, [socket?.listenToEvent]);
 
