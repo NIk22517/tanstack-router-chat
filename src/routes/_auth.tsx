@@ -1,3 +1,4 @@
+import { CallNotification } from "@/components/call/CallNotification";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_auth")({
@@ -13,5 +14,11 @@ export const Route = createFileRoute("/_auth")({
 });
 
 function AuthRoot() {
-  return <Outlet />;
+  const { socket } = Route.useRouteContext();
+  return (
+    <>
+      <Outlet />
+      <CallNotification socket={socket} />
+    </>
+  );
 }

@@ -4,7 +4,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import type { ChatItem } from "../_chat";
 import { Label } from "@/components/ui/label";
 import { UserAvatar } from "@/components/user-avatar";
-import { SendHorizontal, Users } from "lucide-react";
+import { Phone, SendHorizontal, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
@@ -25,6 +25,7 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { DateTimePicker24h } from "@/components/ui/dateTimePicker";
 import { useScheduleMessage } from "@/components/chat/apiCalls";
 import moment from "moment";
+import { useCreateCall } from "@/components/call/apiCalls";
 
 export const getChatHeader = async (chat_id: string, token?: string) => {
   const res = await services.chatServices.singleChatList({ chat_id, token });
@@ -70,6 +71,7 @@ function RouteComponent() {
   const { userDetail } = Route.useRouteContext();
   const { data: stateData, resetData } = useChatState(key);
   const { mutate: mutateSchedule } = useScheduleMessage();
+  const { mutate: createCall } = useCreateCall();
 
   const { data } = useSuspenseQuery({
     queryKey: ["get_chat_header", chat_id],
@@ -79,17 +81,17 @@ function RouteComponent() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: suggestions } = useQuery({
-    queryKey: ["get_last_message_suggestion_reply", chat_id],
-    queryFn: () =>
-      getAiSuggestionReply({
-        chat_id: chat_id,
-        token: userDetail?.token,
-      }),
-    staleTime: Infinity,
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  // const { data: suggestions } = useQuery({
+  //   queryKey: ["get_last_message_suggestion_reply", chat_id],
+  //   queryFn: () =>
+  //     getAiSuggestionReply({
+  //       chat_id: chat_id,
+  //       token: userDetail?.token,
+  //     }),
+  //   staleTime: Infinity,
+  //   retry: false,
+  //   refetchOnWindowFocus: false,
+  // });
 
   const { mutate } = useMutation({
     mutationFn: async ({
@@ -179,12 +181,25 @@ function RouteComponent() {
             })}
           </>
         )}
-        <Options
-          data={{
-            chat_id: Number(chat_id),
-            disable_clear_all: data?.last_message === null,
-          }}
-        />
+        <div className="flex items-center gap-2">
+          <Button
+            variant={"ghost"}
+            onClick={() => {
+              createCall({
+                chat_id,
+                token: userDetail?.token,
+              });
+            }}
+          >
+            <Phone />
+          </Button>
+          <Options
+            data={{
+              chat_id: Number(chat_id),
+              disable_clear_all: data?.last_message === null,
+            }}
+          />
+        </div>
       </div>
       {files.length > 0 ? (
         <div className="w-full h-full py-2 px-4 flex justify-center items-center overflow-hidden">
@@ -217,7 +232,7 @@ function RouteComponent() {
         <Outlet />
       )}
 
-      {suggestions && suggestions?.suggestions?.length > 0 && (
+      {/* {suggestions && suggestions?.suggestions?.length > 0 && (
         <div className="flex flex-row gap-2 flex-nowrap items-center pb-2 scrollbar-hide">
           {suggestions.suggestions?.map((suggestion, i) => {
             return (
@@ -234,7 +249,7 @@ function RouteComponent() {
             );
           })}
         </div>
-      )}
+      )} */}
 
       <div className="w-full mt-auto border-1 border-gray-200 p-2">
         <ReplyData
