@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { useChatState, key } from "@/hooks/useChatState";
 import { ReplyData } from "@/components/chat/ReplyData";
+import { AudioPlayer } from "./AudioPlayer";
 
 interface MessageProps {
   message: ChatMessage;
@@ -96,25 +97,37 @@ export const SingleMessage = ({ message, isYou }: MessageProps) => {
                               />
                             </Avatar>
                           ) : (
-                            <div
-                              className="bg-white p-3 text-black rounded shadow flex items-center gap-3 cursor-pointer hover:bg-gray-100"
-                              onClick={() =>
-                                window.open(attachment.secure_url, "_blank")
-                              }
-                            >
-                              <span
-                                role="img"
-                                aria-label="file"
-                                className="text-xl"
-                              >
-                                📄
-                              </span>
+                            <>
+                              {attachment.resource_type === "video" &&
+                              attachment.audio &&
+                              attachment.duration ? (
+                                <AudioPlayer
+                                  audioUrl={attachment.secure_url}
+                                  duration={attachment.duration}
+                                />
+                              ) : (
+                                <div
+                                  className="bg-white p-3 text-black rounded shadow flex items-center gap-3 cursor-pointer hover:bg-gray-100"
+                                  onClick={() =>
+                                    window.open(attachment.secure_url, "_blank")
+                                  }
+                                >
+                                  {/* File icon */}
+                                  <span
+                                    role="img"
+                                    aria-label="file"
+                                    className="text-xl"
+                                  >
+                                    📄
+                                  </span>
 
-                              {/* File Name */}
-                              <span className="truncate max-w-[200px]">
-                                {attachment.original_filename}
-                              </span>
-                            </div>
+                                  {/* File name */}
+                                  <span className="truncate max-w-[200px]">
+                                    {attachment.original_filename}
+                                  </span>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       );

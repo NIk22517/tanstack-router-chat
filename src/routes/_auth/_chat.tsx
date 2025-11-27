@@ -255,7 +255,7 @@ function RouteComponent() {
                                 <Label className="text-[12px]">Image</Label>
                               </div>
                             ) : (
-                              <Label>
+                              <Label className="w-20 truncate">
                                 {el.last_message.attachments[0].url}
                               </Label>
                             )}

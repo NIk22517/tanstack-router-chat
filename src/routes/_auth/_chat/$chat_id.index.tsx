@@ -18,7 +18,7 @@ export type AttachmentType = {
   width: 626;
   height: 313;
   format: string;
-  resource_type: "image";
+  resource_type: "image" | "video";
   created_at: string;
   tags: string[];
   pages: 1;
@@ -29,6 +29,13 @@ export type AttachmentType = {
   url: string;
   secure_url: string;
   original_filename: string;
+  audio?: {
+    codec: string;
+    frequency: number;
+    channels: number;
+    channel_layout: string;
+  };
+  duration?: number;
 };
 
 export interface ChatMessage {

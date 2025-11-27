@@ -26,6 +26,7 @@ import { DateTimePicker24h } from "@/components/ui/dateTimePicker";
 import { useScheduleMessage } from "@/components/chat/apiCalls";
 import moment from "moment";
 import { useCreateCall } from "@/components/call/apiCalls";
+import { RecordPreview } from "@/components/chat/RecordPreview";
 
 export const getChatHeader = async (chat_id: string, token?: string) => {
   const res = await services.chatServices.singleChatList({ chat_id, token });
@@ -103,7 +104,7 @@ function RouteComponent() {
       chat_id: string;
       token?: string;
     }) => {
-      if (message.trim().length === 0 && files.length === 0) {
+      if (message.trim().length === 0 && files.length === 0 && !recordedAudio) {
         throw new Error("Message can not be empty");
       }
       const formData = new FormData();
@@ -112,6 +113,10 @@ function RouteComponent() {
       files?.forEach((file) => {
         formData.append("files", file);
       });
+
+      if (recordedAudio) {
+        formData.append("files", recordedAudio);
+      }
 
       if (stateData?.reply?.id) {
         formData.append("reply_message_id", stateData?.reply?.id?.toString());
@@ -128,6 +133,7 @@ function RouteComponent() {
     },
   });
   const [files, setFiles] = useState<File[]>([]);
+  const [recordedAudio, setRecordedAudio] = useState<File | null>(null);
   const form = useForm({
     defaultValues: {
       message: "",
@@ -145,6 +151,7 @@ function RouteComponent() {
               message: "",
             });
             setFiles([]);
+            setRecordedAudio(null);
             resetData();
           },
         }
@@ -283,6 +290,13 @@ function RouteComponent() {
               );
             }}
           </form.Field>
+          <RecordPreview
+            disabled={false}
+            onAudioReady={(audio) => {
+              setRecordedAudio(audio);
+            }}
+            recordedAudio={recordedAudio}
+          />
           <SelectFiles
             selectFiles={(files) => {
               setFiles(files);
