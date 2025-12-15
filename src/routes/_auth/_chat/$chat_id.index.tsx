@@ -8,21 +8,23 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { SingleMessage } from "@/components/chat/SingleMessage";
 import { useMarkRead } from "@/components/chat/apiCalls";
+import { useScrollToBottom } from "@/hooks/useScrollToBottom";
+import { ChevronsDown } from "lucide-react";
 
 export type AttachmentType = {
   asset_id: string;
   public_id: string;
-  version: 1747055225;
+  version: number;
   version_id: string;
   signature: string;
-  width: 626;
-  height: 313;
+  width: number;
+  height: number;
   format: string;
   resource_type: "image" | "video";
   created_at: string;
   tags: string[];
-  pages: 1;
-  bytes: 31966;
+  pages: number;
+  bytes: number;
   type: "upload";
   etag: string;
   placeholder: false;
@@ -100,6 +102,8 @@ function RouteComponent() {
   const { chat_id } = Route.useParams();
   const { userDetail, queryClient, socket } = Route.useRouteContext();
   const { mutate: mutateReadMsg } = useMarkRead();
+  const { scrollContainerRef, isAtBottom, scrollToBottom } =
+    useScrollToBottom();
 
   const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useSuspenseInfiniteQuery({
@@ -237,20 +241,22 @@ function RouteComponent() {
     getMessageType: () => "items",
   });
   return (
-    <div className="w-full  h-full flex flex-col-reverse overflow-y-auto py-2 px-4 gap-2">
-      {flatMessages.map((message) => {
-        if ("date" in message) {
-          return (
-            <div
-              key={message.date}
-              className="w-full flex items-center justify-center "
-            >
-              <Label className="bg-green-100 p-2 rounded-xl">
-                {message.date}
-              </Label>
-            </div>
-          );
-        } else if ("items" in message) {
+    <div className="relative w-full h-full overflow-hidden">
+      <div
+        ref={scrollContainerRef}
+        className="w-full h-full flex flex-col-reverse overflow-y-auto py-2 px-4 gap-2"
+      >
+        {flatMessages.map((message) => {
+          if ("date" in message) {
+            return (
+              <div key={message.date} className="w-full flex justify-center">
+                <Label className="bg-green-100 p-2 rounded-xl">
+                  {message.date}
+                </Label>
+              </div>
+            );
+          }
+
           const isYou = message.items.sender_id === userDetail?.id;
           return (
             <SingleMessage
@@ -259,19 +265,25 @@ function RouteComponent() {
               message={message.items}
             />
           );
-        }
-      })}
-      <MessageHead
-        hasNextPage={hasNextPage}
-        has_data={flatMessages.length > 0}
-        isFetchingNextPage={isFetchingNextPage}
-        show_end_reach={flatMessages.length > 8}
-        handleFetchNext={() => {
-          if (hasNextPage) {
-            fetchNextPage();
-          }
-        }}
-      />
+        })}
+
+        <MessageHead
+          hasNextPage={hasNextPage}
+          has_data={flatMessages.length > 0}
+          isFetchingNextPage={isFetchingNextPage}
+          show_end_reach={flatMessages.length > 8}
+          handleFetchNext={() => hasNextPage && fetchNextPage()}
+        />
+      </div>
+
+      {!isAtBottom && (
+        <Button
+          onClick={scrollToBottom}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 rounded-full shadow-lg"
+        >
+          <ChevronsDown />
+        </Button>
+      )}
     </div>
   );
 }
