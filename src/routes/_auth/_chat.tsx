@@ -12,7 +12,13 @@ import {
 import { useEffect } from "react";
 import { useMarkRead, usePinUnpinChat } from "@/components/chat/apiCalls";
 import type { AttachmentType } from "./_chat/$chat_id.index";
-import { Ellipsis, FileImage, PinOff, Users } from "lucide-react";
+import {
+  Ellipsis,
+  FileImage,
+  MessageSquareDiff,
+  PinOff,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -103,6 +109,7 @@ export const Route = createFileRoute("/_auth/_chat")({
 });
 
 function RouteComponent() {
+  const navigate = Route.useNavigate();
   const { userDetail, queryClient, socket } = Route.useRouteContext();
   const matches = useMatches();
   const chatMatch = matches.at(-1);
@@ -205,7 +212,7 @@ function RouteComponent() {
     <div className="flex justify-between w-screen h-screen">
       <div
         className={cn(
-          "flex flex-col gap-2 border-r-1 p-4 h-screen overflow-y-auto",
+          "relative flex flex-col gap-2 border-r-1 p-4 h-screen overflow-y-auto",
           chat_id ? "hidden sm:flex sm:w-sm" : "w-full sm:w-sm"
         )}
       >
@@ -320,6 +327,16 @@ function RouteComponent() {
               </Link>
             );
           })}
+        <Button
+          className="absolute right-8 bottom-10"
+          onClick={() => {
+            navigate({
+              to: "/create/conversation",
+            });
+          }}
+        >
+          <MessageSquareDiff />
+        </Button>
       </div>
       <Outlet />
     </div>

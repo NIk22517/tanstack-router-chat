@@ -1,8 +1,31 @@
 import { BaseService, type AuthInfo } from "./BaseService";
 
 export class ChatServices extends BaseService {
+  createChat = (
+    values: AuthInfo & {
+      data: {
+        user_ids: number[];
+        name?: string;
+      };
+    }
+  ) => {
+    return this.instance.post(
+      "/chat/create",
+      { data: values.data },
+      {
+        ...this.buildConfig({ auth: values }),
+      }
+    );
+  };
+
   chatList = (values: AuthInfo & { query: string }) => {
     return this.instance.get("/chat" + values.query, {
+      ...this.buildConfig({ auth: values }),
+    });
+  };
+
+  getConversationContact = (values: AuthInfo) => {
+    return this.instance.get("/chat/conversation-contacts", {
       ...this.buildConfig({ auth: values }),
     });
   };

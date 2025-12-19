@@ -17,6 +17,7 @@ import { Route as AuthImport } from './routes/_auth'
 import { Route as AuthChatImport } from './routes/_auth/_chat'
 import { Route as AuthChatIndexImport } from './routes/_auth/_chat/index'
 import { Route as AuthUserUseridImport } from './routes/_auth/user/$user_id'
+import { Route as AuthCreateConversationImport } from './routes/_auth/create.conversation'
 import { Route as AuthCallCallidImport } from './routes/_auth/call/$call_id'
 import { Route as AuthChatChatidImport } from './routes/_auth/_chat/$chat_id'
 import { Route as AuthChatidScheduleImport } from './routes/_auth/$chat_id.schedule'
@@ -55,6 +56,12 @@ const AuthChatIndexRoute = AuthChatIndexImport.update({
 const AuthUserUseridRoute = AuthUserUseridImport.update({
   id: '/user/$user_id',
   path: '/user/$user_id',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthCreateConversationRoute = AuthCreateConversationImport.update({
+  id: '/create/conversation',
+  path: '/create/conversation',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -135,6 +142,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallCallidImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/create/conversation': {
+      id: '/_auth/create/conversation'
+      path: '/create/conversation'
+      fullPath: '/create/conversation'
+      preLoaderRoute: typeof AuthCreateConversationImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/user/$user_id': {
       id: '/_auth/user/$user_id'
       path: '/user/$user_id'
@@ -191,6 +205,7 @@ interface AuthRouteChildren {
   AuthChatRoute: typeof AuthChatRouteWithChildren
   AuthChatidScheduleRoute: typeof AuthChatidScheduleRoute
   AuthCallCallidRoute: typeof AuthCallCallidRoute
+  AuthCreateConversationRoute: typeof AuthCreateConversationRoute
   AuthUserUseridRoute: typeof AuthUserUseridRoute
 }
 
@@ -198,6 +213,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthChatRoute: AuthChatRouteWithChildren,
   AuthChatidScheduleRoute: AuthChatidScheduleRoute,
   AuthCallCallidRoute: AuthCallCallidRoute,
+  AuthCreateConversationRoute: AuthCreateConversationRoute,
   AuthUserUseridRoute: AuthUserUseridRoute,
 }
 
@@ -210,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/$chat_id/schedule': typeof AuthChatidScheduleRoute
   '/$chat_id': typeof AuthChatChatidRouteWithChildren
   '/call/$call_id': typeof AuthCallCallidRoute
+  '/create/conversation': typeof AuthCreateConversationRoute
   '/user/$user_id': typeof AuthUserUseridRoute
   '/': typeof AuthChatIndexRoute
   '/$chat_id/': typeof AuthChatChatidIndexRoute
@@ -221,6 +238,7 @@ export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
   '/$chat_id/schedule': typeof AuthChatidScheduleRoute
   '/call/$call_id': typeof AuthCallCallidRoute
+  '/create/conversation': typeof AuthCreateConversationRoute
   '/user/$user_id': typeof AuthUserUseridRoute
   '/': typeof AuthChatIndexRoute
   '/$chat_id': typeof AuthChatChatidIndexRoute
@@ -235,6 +253,7 @@ export interface FileRoutesById {
   '/_auth/$chat_id/schedule': typeof AuthChatidScheduleRoute
   '/_auth/_chat/$chat_id': typeof AuthChatChatidRouteWithChildren
   '/_auth/call/$call_id': typeof AuthCallCallidRoute
+  '/_auth/create/conversation': typeof AuthCreateConversationRoute
   '/_auth/user/$user_id': typeof AuthUserUseridRoute
   '/_auth/_chat/': typeof AuthChatIndexRoute
   '/_auth/_chat/$chat_id/': typeof AuthChatChatidIndexRoute
@@ -249,6 +268,7 @@ export interface FileRouteTypes {
     | '/$chat_id/schedule'
     | '/$chat_id'
     | '/call/$call_id'
+    | '/create/conversation'
     | '/user/$user_id'
     | '/'
     | '/$chat_id/'
@@ -259,6 +279,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/$chat_id/schedule'
     | '/call/$call_id'
+    | '/create/conversation'
     | '/user/$user_id'
     | '/'
     | '/$chat_id'
@@ -271,6 +292,7 @@ export interface FileRouteTypes {
     | '/_auth/$chat_id/schedule'
     | '/_auth/_chat/$chat_id'
     | '/_auth/call/$call_id'
+    | '/_auth/create/conversation'
     | '/_auth/user/$user_id'
     | '/_auth/_chat/'
     | '/_auth/_chat/$chat_id/'
@@ -310,6 +332,7 @@ export const routeTree = rootRoute
         "/_auth/_chat",
         "/_auth/$chat_id/schedule",
         "/_auth/call/$call_id",
+        "/_auth/create/conversation",
         "/_auth/user/$user_id"
       ]
     },
@@ -340,6 +363,10 @@ export const routeTree = rootRoute
     },
     "/_auth/call/$call_id": {
       "filePath": "_auth/call/$call_id.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/create/conversation": {
+      "filePath": "_auth/create.conversation.tsx",
       "parent": "/_auth"
     },
     "/_auth/user/$user_id": {

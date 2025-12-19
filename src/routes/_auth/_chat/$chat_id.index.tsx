@@ -40,6 +40,15 @@ export type AttachmentType = {
   duration?: number;
 };
 
+type SystemEventType =
+  | "group_created"
+  | "users_added"
+  | "user_removed"
+  | "user_left"
+  | "group_name_changed"
+  | "group_avatar_changed"
+  | "message_pinned";
+
 export interface ChatMessage {
   chat_id: number;
   id: number;
@@ -48,6 +57,7 @@ export interface ChatMessage {
   sender_id: number;
   created_at: string;
   read_status: "read" | "unread";
+  message_type: "user" | "system";
   sender_name: string;
   delete_action: string | null;
   delete_text: string | null;
@@ -59,7 +69,40 @@ export interface ChatMessage {
     created_at: string;
     sender_name: string;
   };
+  system_data: {
+    event: SystemEventType;
+    metadata: {
+      actor: {
+        id: number;
+        name: string;
+      };
+      targets?: {
+        id: number;
+        name: string;
+      }[];
+    };
+  } | null;
 }
+
+const systemRenderers: Record<
+  SystemEventType,
+  (m: ChatMessage) => React.ReactNode | null
+> = {
+  group_created: (m: ChatMessage) => {
+    const actor = m.system_data?.metadata.actor;
+    return (
+      <span className="text-sm text-muted-foreground">
+        <strong>{actor?.name}</strong> created the group
+      </span>
+    );
+  },
+  group_avatar_changed: () => null,
+  group_name_changed: () => null,
+  message_pinned: () => null,
+  user_left: () => null,
+  user_removed: () => null,
+  users_added: () => null,
+};
 
 export const chatMessagesQueryFn =
   (chat_id: string, token?: string) =>
@@ -236,9 +279,13 @@ function RouteComponent() {
   const { flatMessages } = useMessageProcessor({
     data: data.pages.flatMap((el) => el),
     groupTemplate: {
-      items: [],
+      items: [] as ChatMessage[],
+      system: [] as ChatMessage[],
     },
-    getMessageType: () => "items",
+    getMessageType: (item) => {
+      if (item.message_type === "system") return "system";
+      return "items";
+    },
   });
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -255,16 +302,28 @@ function RouteComponent() {
                 </Label>
               </div>
             );
+          } else if ("system" in message) {
+            if (!message.system.system_data?.event) return null;
+            const render = systemRenderers[message.system.system_data?.event];
+            if (!render) return null;
+            return (
+              <div
+                key={message.system.id}
+                className="w-full flex justify-center"
+              >
+                {render(message.system)}
+              </div>
+            );
+          } else if ("items" in message) {
+            const isYou = message.items.sender_id === userDetail?.id;
+            return (
+              <SingleMessage
+                key={message.items.id}
+                isYou={isYou}
+                message={message.items}
+              />
+            );
           }
-
-          const isYou = message.items.sender_id === userDetail?.id;
-          return (
-            <SingleMessage
-              key={message.items.id}
-              isYou={isYou}
-              message={message.items}
-            />
-          );
         })}
 
         <MessageHead

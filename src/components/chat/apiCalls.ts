@@ -1,6 +1,49 @@
 import type { ScheduleMessgaeType } from "@/routes/_auth/$chat_id.schedule";
 import { services } from "@/services";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+
+export const useCreateChat = () => {
+  const navigate = useNavigate();
+  return useMutation({
+    mutationFn: async ({
+      token,
+      user_ids,
+      name,
+    }: {
+      token?: string;
+      user_ids: number[];
+      name?: string;
+    }) => {
+      if (!user_ids || user_ids.length === 0) {
+        throw new Error("Plese select users");
+      }
+      const res = await services.chatServices.createChat({
+        token,
+        data: {
+          user_ids,
+          name,
+        },
+      });
+      if (res.status === 200) {
+        return res.data.data;
+      }
+      throw new Error(res?.data?.message);
+    },
+    onSettled: (data, error, variables, context) => {
+      if (error) {
+        console.error(error);
+      } else {
+        if ("newChat" in data && "id" in data?.newChat) {
+          navigate({
+            to: "/$chat_id",
+            params: { chat_id: data.newChat.id },
+          });
+        }
+      }
+    },
+  });
+};
 
 export const useMarkRead = () => {
   return useMutation({
