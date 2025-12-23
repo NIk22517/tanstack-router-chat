@@ -1,7 +1,7 @@
 import { services } from "@/services";
 import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import type { ChatItem } from "../_chat";
+import { fallbackIcon, type ChatItem } from "../_chat";
 import { Label } from "@/components/ui/label";
 import { UserAvatar } from "@/components/user-avatar";
 import { Phone, SendHorizontal, Users } from "lucide-react";
@@ -162,9 +162,12 @@ function RouteComponent() {
   return (
     <div className="w-full flex flex-col items-start">
       <div className="w-full p-2 border-b-1 border-gray-200 flex justify-between">
-        {data.chat_type === "group" ? (
+        {data.chat_type !== "single" ? (
           <div className="flex flex-row gap-2">
-            <UserAvatar fallback={<Users />} className="w-10 h-10" />
+            <UserAvatar
+              fallback={fallbackIcon[data.chat_type] ?? "Not Found"}
+              className="w-10 h-10"
+            />
             <div className="flex flex-col gap-1">
               <Label>{data.chat_name}</Label>
               <Label className="text-ellipsis line-clamp-1">
@@ -323,6 +326,12 @@ function RouteComponent() {
                 const utcDateTime = moment(date).utc().toISOString();
 
                 console.log("📅 Schedule this message for:", utcDateTime);
+
+                if (!form.state.values.message.trim().length) {
+                  console.error(
+                    "Please add messages to schedule can not schedule attachment"
+                  );
+                }
 
                 mutateSchedule(
                   {

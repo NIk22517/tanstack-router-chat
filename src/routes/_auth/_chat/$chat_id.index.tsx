@@ -64,23 +64,21 @@ export interface ChatMessage {
   reply_data?: {
     id: number;
     message: string;
-    attachments: AttachmentType[];
+    attachments: AttachmentType[] | null;
     sender_id: number;
     created_at: string;
     sender_name: string;
   };
   system_data: {
     event: SystemEventType;
-    metadata: {
-      actor: {
-        id: number;
-        name: string;
-      };
-      targets?: {
-        id: number;
-        name: string;
-      }[];
+    actor: {
+      id: number;
+      name: string;
     };
+    targets?: {
+      id: number;
+      name: string;
+    }[];
   } | null;
 }
 
@@ -89,7 +87,7 @@ const systemRenderers: Record<
   (m: ChatMessage) => React.ReactNode | null
 > = {
   group_created: (m: ChatMessage) => {
-    const actor = m.system_data?.metadata.actor;
+    const actor = m.system_data?.actor;
     return (
       <span className="text-sm text-muted-foreground">
         <strong>{actor?.name}</strong> created the group

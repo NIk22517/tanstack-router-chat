@@ -10,6 +10,10 @@ type MessageProcessorParams<
   getMessageType: (message: T) => K | null;
 };
 
+type FlatMessage<T, K extends string> =
+  | { date: string }
+  | (K extends any ? { [P in K]: T } : never);
+
 export function useMessageProcessor<
   T extends { created_at: string | Date },
   K extends string,
@@ -55,7 +59,7 @@ export function useMessageProcessor<
           moment(b.date, "MMM DD, YYYY").valueOf()
       );
 
-    const sortMessage = (a: Record<K, T>, b: Record<K, T>) => {
+    const sortMessage = (a: FlatMessage<T, K>, b: FlatMessage<T, K>) => {
       const itemA = Object.values(a)[0] as T;
       const itemB = Object.values(b)[0] as T;
 
@@ -85,12 +89,16 @@ export function useMessageProcessor<
           .filter(([key]) => key !== "date")
           .flatMap(([key, value]) =>
             Array.isArray(value)
-              ? value.map((item) => ({ [key as K]: item }) as Record<K, T>)
+              ? value.map((item) => ({ [key]: item }) as FlatMessage<T, K>)
               : []
           )
           .sort(sortMessage);
 
-        return [{ date: displayDate }, ...groupItems];
+        const result: FlatMessage<T, K>[] = [
+          { date: displayDate },
+          ...groupItems,
+        ];
+        return result;
       })
       .reverse();
   }, [groupedMessages]);

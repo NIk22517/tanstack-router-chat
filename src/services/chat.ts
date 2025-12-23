@@ -6,6 +6,7 @@ export class ChatServices extends BaseService {
       data: {
         user_ids: number[];
         name?: string;
+        type: "single" | "group" | "broadcast";
       };
     }
   ) => {

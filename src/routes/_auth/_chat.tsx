@@ -9,7 +9,7 @@ import {
   Outlet,
   useMatches,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, type JSX } from "react";
 import { useMarkRead, usePinUnpinChat } from "@/components/chat/apiCalls";
 import type { AttachmentType } from "./_chat/$chat_id.index";
 import {
@@ -17,6 +17,7 @@ import {
   FileImage,
   MessageSquareDiff,
   PinOff,
+  RadioTower,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -44,11 +45,11 @@ export interface LastMessage {
 export interface ChatItem {
   chat_id: number;
   chat_name: string;
-  chat_type: "single" | "group";
+  chat_type: "single" | "group" | "broadcast";
   created_at: string;
   members: ChatMember[];
   last_message: LastMessage | null;
-  unread_count: string;
+  unread_count: number;
   is_pinned: boolean;
 }
 
@@ -107,6 +108,12 @@ export const Route = createFileRoute("/_auth/_chat")({
   },
   component: RouteComponent,
 });
+
+export const fallbackIcon: Record<ChatItem["chat_type"], JSX.Element | null> = {
+  single: null,
+  broadcast: <RadioTower />,
+  group: <Users />,
+};
 
 function RouteComponent() {
   const navigate = Route.useNavigate();
@@ -241,13 +248,11 @@ function RouteComponent() {
               >
                 <div className="flex flex-row gap-2 items-center">
                   <UserAvatar
-                    fallback={
-                      el.chat_type === "group" ? <Users /> : el.members[0].name
-                    }
+                    fallback={fallbackIcon[el.chat_type] ?? el.members[0].name}
                   />
                   <div className="flex flex-col gap-0.5">
                     <Label>
-                      {el.chat_type === "group"
+                      {el.chat_type !== "single"
                         ? el.chat_name
                         : el.members[0].name}
                     </Label>
@@ -311,7 +316,7 @@ function RouteComponent() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    {el.unread_count !== "0" && el.unread_count && (
+                    {el.unread_count > 0 && el.unread_count && (
                       <Badge
                         variant={"success"}
                         className="rounded-4xl h-6 w-6"

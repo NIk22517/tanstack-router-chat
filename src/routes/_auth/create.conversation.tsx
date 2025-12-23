@@ -60,13 +60,26 @@ function RouteComponent() {
               <X />
             </Button>
           </ActionTooltip>
-          <div>
+          <div className="flex flex-row gap-1">
             <Button
-              disabled={isPending || selected.size <= 0}
+              disabled={isPending || selected.size <= 1}
               onClick={() => {
                 mutate({
                   token: userDetail?.token,
                   user_ids: [...selected],
+                  type: "broadcast",
+                });
+              }}
+            >
+              Create Broadcast
+            </Button>
+            <Button
+              disabled={isPending || selected.size <= 1}
+              onClick={() => {
+                mutate({
+                  token: userDetail?.token,
+                  user_ids: [...selected],
+                  type: "group",
                 });
               }}
             >

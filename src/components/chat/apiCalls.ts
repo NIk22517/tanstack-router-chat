@@ -10,10 +10,12 @@ export const useCreateChat = () => {
       token,
       user_ids,
       name,
+      type,
     }: {
       token?: string;
       user_ids: number[];
       name?: string;
+      type: "single" | "group" | "broadcast";
     }) => {
       if (!user_ids || user_ids.length === 0) {
         throw new Error("Plese select users");
@@ -23,6 +25,7 @@ export const useCreateChat = () => {
         data: {
           user_ids,
           name,
+          type,
         },
       });
       if (res.status === 200) {
