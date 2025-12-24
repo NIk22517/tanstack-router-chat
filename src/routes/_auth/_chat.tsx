@@ -213,6 +213,35 @@ function RouteComponent() {
         pages: updatedPages,
       });
     });
+    socket.listenToEvent(
+      "deleteMessage",
+      (eventData: {
+        action: "delete_for_me" | "delete_for_everyone" | "clear_all_chat";
+        chat_id: number;
+        deleted_by: number;
+        messages_ids: number[];
+      }) => {
+        const updatedPages = data.pages.map((pages) => {
+          return pages.map((el) => {
+            if (eventData.chat_id === el.chat_id) {
+              return {
+                ...el,
+                last_message: {
+                  ...el.last_message,
+                  attachments: [],
+                  message: "This message is deleted",
+                },
+              };
+            }
+            return el;
+          });
+        });
+        queryClient.setQueryData(["chat_list"], {
+          ...data,
+          pages: updatedPages,
+        });
+      }
+    );
   }, [socket?.listenToEvent, data]);
 
   return (

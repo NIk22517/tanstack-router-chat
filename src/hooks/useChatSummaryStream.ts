@@ -56,7 +56,7 @@ export const useChatSummaryStream = ({
       try {
         const res = await fetch(`http://localhost:8080/ai/summary/${chat_id}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `${token}`,
             Accept: "text/event-stream",
             "Cache-Control": "no-cache",
             Connection: "keep-alive",
