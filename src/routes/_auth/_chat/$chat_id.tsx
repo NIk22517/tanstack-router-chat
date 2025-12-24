@@ -1,10 +1,10 @@
 import { services } from "@/services";
-import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { fallbackIcon, type ChatItem } from "../_chat";
 import { Label } from "@/components/ui/label";
 import { UserAvatar } from "@/components/user-avatar";
-import { Phone, SendHorizontal, Users } from "lucide-react";
+import { Phone, SendHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";

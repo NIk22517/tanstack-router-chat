@@ -1,6 +1,4 @@
 import moment from "moment";
-import { Pencil } from "lucide-react";
-import { Button } from "../ui/button";
 import {
   Card,
   CardAction,
@@ -10,7 +8,6 @@ import {
   CardTitle,
 } from "../ui/card";
 import { Label } from "../ui/label";
-import { ActionTooltip } from "../action-tooltip";
 import type { ScheduleMessgaeType } from "@/routes/_auth/$chat_id.schedule";
 import { DeleteScheduleMessage } from "./DeleteScheduleMessgae";
 import { EditScheduleMessge } from "./EditScheduleMessage";

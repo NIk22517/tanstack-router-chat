@@ -63,7 +63,7 @@ export const useControlCall = () => {
       }
       throw new Error(res?.data?.message);
     },
-    onSettled: (data, error, variables, context) => {
+    onSettled: (_, error, variables) => {
       if (error) {
       } else {
         if (variables.status === "accepted") {

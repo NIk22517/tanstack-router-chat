@@ -1,9 +1,9 @@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import type { ChatMessage } from "./$chat_id.index";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CircleX } from "lucide-react";
 import { ActionTooltip } from "@/components/action-tooltip";
+import type { ChatMessage } from "@/routes/_auth/_chat/$chat_id.index";
 
 interface ReplyProps {
   message: ChatMessage | null | undefined;

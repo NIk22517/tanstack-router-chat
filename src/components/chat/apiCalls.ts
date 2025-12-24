@@ -33,7 +33,7 @@ export const useCreateChat = () => {
       }
       throw new Error(res?.data?.message);
     },
-    onSettled: (data, error, variables, context) => {
+    onSettled: (data, error) => {
       if (error) {
         console.error(error);
       } else {
@@ -161,7 +161,7 @@ export const useDeleteScheduleMessage = () => {
       }
       throw new Error(res?.data?.message);
     },
-    onSettled: async (data, error, variables, context) => {
+    onSettled: async (_, error, variables) => {
       if (error) {
         console.error(error.message);
       } else {
@@ -208,7 +208,7 @@ export const useEditSchedule = () => {
       }
       throw new Error(res?.data?.message);
     },
-    onSettled: async (data, error, variables, context) => {
+    onSettled: async (_, error, variables) => {
       if (error) {
       } else {
         await queryClient.setQueryData(
