@@ -27,6 +27,7 @@ import { useScheduleMessage } from "@/components/chat/apiCalls";
 import moment from "moment";
 import { useCreateCall } from "@/components/call/apiCalls";
 import { RecordPreview } from "@/components/chat/RecordPreview";
+import { SearchPanel } from "@/components/chat/SearchPanel";
 
 export const getChatHeader = async (chat_id: string, token?: string) => {
   const res = await services.chatServices.singleChatList({ chat_id, token });
@@ -235,38 +236,42 @@ function RouteComponent() {
           />
         </div>
       </div>
-      {files.length > 0 ? (
-        <div className="w-full h-full py-2 px-4 flex justify-center items-center overflow-hidden">
-          <Carousel className="w-full h-full flex items-center justify-center">
-            <CarouselContent>
-              {files.map((file, index) => (
-                <CarouselItem key={`${index + 1}`} className="h-full w-full">
-                  <div className="flex items-center justify-center h-[50vh] w-full">
-                    <Card className="h-full w-full">
-                      <CardContent className="h-full w-full">
-                        {file.type.startsWith("image/") ? (
-                          <Avatar className="h-full w-full rounded-none">
-                            <AvatarImage
-                              src={URL.createObjectURL(file)}
-                              className="h-full w-full object-contain"
-                            />
-                          </Avatar>
-                        ) : (
-                          ""
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
-        </div>
-      ) : (
-        <Outlet />
-      )}
-
-      {/* {suggestions && suggestions?.suggestions?.length > 0 && (
+      <div className="w-full flex flex-row overflow-hidden">
+        <div className="w-full flex flex-col overflow-hidden">
+          {files.length > 0 ? (
+            <div className="w-full h-full py-2 px-4 flex justify-center items-center overflow-hidden">
+              <Carousel className="w-full h-full flex items-center justify-center">
+                <CarouselContent>
+                  {files.map((file, index) => (
+                    <CarouselItem
+                      key={`${index + 1}`}
+                      className="h-full w-full"
+                    >
+                      <div className="flex items-center justify-center h-[50vh] w-full">
+                        <Card className="h-full w-full">
+                          <CardContent className="h-full w-full">
+                            {file.type.startsWith("image/") ? (
+                              <Avatar className="h-full w-full rounded-none">
+                                <AvatarImage
+                                  src={URL.createObjectURL(file)}
+                                  className="h-full w-full object-contain"
+                                />
+                              </Avatar>
+                            ) : (
+                              ""
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+            </div>
+          ) : (
+            <Outlet />
+          )}
+          {/* {suggestions && suggestions?.suggestions?.length > 0 && (
         <div className="flex flex-row gap-2 flex-nowrap items-center pb-2 scrollbar-hide">
           {suggestions.suggestions?.map((suggestion, i) => {
             return (
@@ -284,122 +289,128 @@ function RouteComponent() {
           })}
         </div>
       )} */}
-
-      <div className="w-full mt-auto border-1 border-gray-200 p-2">
-        <ReplyData
-          message={stateData?.reply}
-          className="mb-2"
-          handleClose={() => {
-            resetData();
-          }}
-        />
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          className="flex items-center gap-2"
-        >
-          <form.Field name="message">
-            {({ state, handleChange, form }) => {
-              return (
-                <Textarea
-                  value={state.value}
-                  onChange={(e) => handleChange(e.target.value)}
-                  className="resize-none text-xl min-h-2 max-h-20"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      form.handleSubmit();
-                    }
-                  }}
-                />
-              );
-            }}
-          </form.Field>
-          <RecordPreview
-            disabled={false}
-            onAudioReady={(audio) => {
-              setRecordedAudio(audio);
-            }}
-            recordedAudio={recordedAudio}
-          />
-          <SelectFiles
-            selectFiles={(files) => {
-              setFiles(files);
-            }}
-          />
-          <form.Subscribe selector={(state) => [state.canSubmit]}>
-            {([canSubmit]) => {
-              const [popoverOpen, setPopoverOpen] = useState(false);
-              const [longPressHandlers, wasLongPressed] = useLongPress({
-                onLongPress: () => {
-                  setPopoverOpen(true);
-                },
-              });
-
-              const handleClick = (e: React.MouseEvent) => {
-                if (wasLongPressed()) {
-                  e.preventDefault();
-                  return;
-                }
-                form.handleSubmit();
-              };
-
-              const handleSchedule = (date: Date) => {
-                const utcDateTime = moment(date).utc().toISOString();
-
-                console.log("📅 Schedule this message for:", utcDateTime);
-
-                if (!form.state.values.message.trim().length) {
-                  console.error(
-                    "Please add messages to schedule can not schedule attachment"
-                  );
-                }
-
-                mutateSchedule(
-                  {
-                    chat_id,
-                    message: form.state.values.message,
-                    scheduled_at: utcDateTime,
-                    token: userDetail?.token,
-                  },
-                  {
-                    onSuccess: () => {
-                      setPopoverOpen(false);
-                      form.reset({
-                        message: "",
-                      });
-                    },
-                  }
-                );
-              };
-
-              return (
-                <Drawer open={popoverOpen} onOpenChange={setPopoverOpen}>
-                  <Button
-                    onClick={handleClick}
-                    {...longPressHandlers}
-                    disabled={!canSubmit}
-                  >
-                    <SendHorizontal />
-                  </Button>
-
-                  <DrawerContent className="w-full flex flex-col items-center pb-10">
-                    <h2 className="text-lg font-semibold mb-4">
-                      Schedule Message
-                    </h2>
-                    <DateTimePicker24h
-                      onSchedule={(date) => {
-                        handleSchedule(date);
+          <div className="w-full mt-auto border-1 border-gray-200 p-2">
+            <ReplyData
+              message={stateData?.reply}
+              className="mb-2"
+              handleClose={() => {
+                resetData();
+              }}
+            />
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="flex items-center gap-2"
+            >
+              <form.Field name="message">
+                {({ state, handleChange, form }) => {
+                  return (
+                    <Textarea
+                      value={state.value}
+                      onChange={(e) => handleChange(e.target.value)}
+                      className="resize-none text-xl min-h-2 max-h-20"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          form.handleSubmit();
+                        }
                       }}
                     />
-                  </DrawerContent>
-                </Drawer>
-              );
-            }}
-          </form.Subscribe>
-        </form>
+                  );
+                }}
+              </form.Field>
+              <RecordPreview
+                disabled={false}
+                onAudioReady={(audio) => {
+                  setRecordedAudio(audio);
+                }}
+                recordedAudio={recordedAudio}
+              />
+              <SelectFiles
+                selectFiles={(files) => {
+                  setFiles(files);
+                }}
+              />
+              <form.Subscribe selector={(state) => [state.canSubmit]}>
+                {([canSubmit]) => {
+                  const [popoverOpen, setPopoverOpen] = useState(false);
+                  const [longPressHandlers, wasLongPressed] = useLongPress({
+                    onLongPress: () => {
+                      setPopoverOpen(true);
+                    },
+                  });
+
+                  const handleClick = (e: React.MouseEvent) => {
+                    if (wasLongPressed()) {
+                      e.preventDefault();
+                      return;
+                    }
+                    form.handleSubmit();
+                  };
+
+                  const handleSchedule = (date: Date) => {
+                    const utcDateTime = moment(date).utc().toISOString();
+
+                    console.log("📅 Schedule this message for:", utcDateTime);
+
+                    if (!form.state.values.message.trim().length) {
+                      console.error(
+                        "Please add messages to schedule can not schedule attachment"
+                      );
+                    }
+
+                    mutateSchedule(
+                      {
+                        chat_id,
+                        message: form.state.values.message,
+                        scheduled_at: utcDateTime,
+                        token: userDetail?.token,
+                      },
+                      {
+                        onSuccess: () => {
+                          setPopoverOpen(false);
+                          form.reset({
+                            message: "",
+                          });
+                        },
+                      }
+                    );
+                  };
+
+                  return (
+                    <Drawer open={popoverOpen} onOpenChange={setPopoverOpen}>
+                      <Button
+                        onClick={handleClick}
+                        {...longPressHandlers}
+                        disabled={!canSubmit}
+                      >
+                        <SendHorizontal />
+                      </Button>
+
+                      <DrawerContent className="w-full flex flex-col items-center pb-10">
+                        <h2 className="text-lg font-semibold mb-4">
+                          Schedule Message
+                        </h2>
+                        <DateTimePicker24h
+                          onSchedule={(date) => {
+                            handleSchedule(date);
+                          }}
+                        />
+                      </DrawerContent>
+                    </Drawer>
+                  );
+                }}
+              </form.Subscribe>
+            </form>
+          </div>
+        </div>
+        {search_panel && (
+          <div className="w-180 h-full border-l bg-white flex flex-col">
+            <SearchPanel />
+          </div>
+        )}
       </div>
     </div>
   );

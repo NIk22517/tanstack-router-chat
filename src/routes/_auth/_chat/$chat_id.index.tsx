@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { SingleMessage } from "@/components/chat/SingleMessage";
 import { useMarkRead } from "@/components/chat/apiCalls";
 import { useScrollToBottom } from "@/hooks/useScrollToBottom";
-import { ChevronsDown, Cross, MessageCircleX } from "lucide-react";
+import { ChevronsDown, MessageCircleX } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { ActionTooltip } from "@/components/action-tooltip";
 
