@@ -67,9 +67,9 @@ export const Route = createFileRoute("/_auth/_chat/$chat_id")({
   },
   validateSearch: (
     search: Record<string, unknown>
-  ): { search_panel: boolean } => {
+  ): { search_panel?: boolean } => {
     return {
-      search_panel: Boolean(search.search_panel) ?? false,
+      search_panel: Boolean(search?.search_panel) ?? false,
     };
   },
   component: RouteComponent,
