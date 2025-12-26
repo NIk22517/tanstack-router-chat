@@ -3,15 +3,17 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CircleX } from "lucide-react";
 import { ActionTooltip } from "@/components/action-tooltip";
-import type { ChatMessage } from "@/routes/_auth/_chat/$chat_id.index";
+import { Route, type ChatMessage } from "@/routes/_auth/_chat/$chat_id.index";
+import { useNavigate } from "@tanstack/react-router";
 
 interface ReplyProps {
-  message: ChatMessage | null | undefined;
+  message: ChatMessage["reply_data"] | null | undefined;
   className?: string;
   handleClose?: () => void;
 }
 
 export const ReplyData = ({ message, className, handleClose }: ReplyProps) => {
+  const navigate = useNavigate({ from: Route.fullPath });
   if (!message) return null;
   return (
     <div
@@ -19,6 +21,16 @@ export const ReplyData = ({ message, className, handleClose }: ReplyProps) => {
         "bg-white rounded-sm border-l-5 border-yellow-400 flex justify-between",
         className
       )}
+      onClick={() => {
+        navigate({
+          search: (prev) => {
+            return {
+              ...prev,
+              message_search_id: message.id,
+            };
+          },
+        });
+      }}
     >
       <div className="pl-2 pr-2">
         <p className="text-purple-500">{message?.sender_name}</p>

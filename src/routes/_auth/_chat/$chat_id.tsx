@@ -1,10 +1,10 @@
 import { services } from "@/services";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { fallbackIcon, type ChatItem } from "../_chat";
 import { Label } from "@/components/ui/label";
 import { UserAvatar } from "@/components/user-avatar";
-import { Phone, SendHorizontal } from "lucide-react";
+import { Phone, Search, SendHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
@@ -64,11 +64,20 @@ export const Route = createFileRoute("/_auth/_chat/$chat_id")({
       retry: false,
     });
   },
+  validateSearch: (
+    search: Record<string, unknown>
+  ): { search_panel: boolean } => {
+    return {
+      search_panel: Boolean(search.search_panel) ?? false,
+    };
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const { chat_id } = Route.useParams();
+  const { search_panel } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const { userDetail } = Route.useRouteContext();
   const { data: stateData, resetData } = useChatState(key);
   const { mutate: mutateSchedule } = useScheduleMessage();
@@ -192,6 +201,21 @@ function RouteComponent() {
           </>
         )}
         <div className="flex items-center gap-2">
+          <Button
+            variant={search_panel ? "secondary" : "ghost"}
+            onClick={() => {
+              navigate({
+                search: (prev) => {
+                  return {
+                    ...prev,
+                    search_panel: !prev.search_panel,
+                  };
+                },
+              });
+            }}
+          >
+            <Search />
+          </Button>
           <Button
             variant={"ghost"}
             onClick={() => {

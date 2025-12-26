@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import type { ChatListPageParam } from "../_chat";
 import { services } from "@/services";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -9,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { SingleMessage } from "@/components/chat/SingleMessage";
 import { useMarkRead } from "@/components/chat/apiCalls";
 import { useScrollToBottom } from "@/hooks/useScrollToBottom";
-import { ChevronsDown } from "lucide-react";
+import { ChevronsDown, Cross, MessageCircleX } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { ActionTooltip } from "@/components/action-tooltip";
 
 export type AttachmentType = {
   asset_id: string;
@@ -102,16 +103,51 @@ const systemRenderers: Record<
   users_added: () => null,
 };
 
+export type ChatMessagesParam = {
+  limit: number;
+  before_id?: number;
+  after_id?: number;
+  around_id?: number;
+};
+
+type ChatResponse = {
+  data: ChatMessage[];
+  paging: {
+    has_older: boolean;
+    has_newer: boolean;
+    oldest_id: number;
+    newest_id: number;
+    limit: number;
+  };
+};
+
 export const chatMessagesQueryFn =
   (chat_id: string, token?: string) =>
   async ({
     pageParam,
   }: {
-    pageParam: ChatListPageParam;
-  }): Promise<ChatMessage[]> => {
+    pageParam: ChatMessagesParam;
+  }): Promise<ChatResponse> => {
+    const params = new URLSearchParams();
+    params.set("limit", String(pageParam.limit));
+
+    if (pageParam.before_id) {
+      params.set("before_id", String(pageParam.before_id));
+    }
+
+    if (pageParam.after_id) {
+      params.set("after_id", String(pageParam.after_id));
+    }
+
+    if (pageParam.around_id) {
+      params.set("around_id", String(pageParam.around_id));
+    }
+
+    console.log(pageParam, "pageParam");
+
     const res = await services.chatServices.getMessages({
       token,
-      query: `?limit=${pageParam.limit}&offset=${pageParam.offset}`,
+      query: `?${params.toString()}`,
       chat_id,
     });
 
@@ -124,44 +160,75 @@ export const chatMessagesQueryFn =
 
 export const Route = createFileRoute("/_auth/_chat/$chat_id/")({
   beforeLoad: async (ctx) => {
-    const { context, params } = ctx;
+    const { context, params, search } = ctx;
     await context.queryClient.prefetchInfiniteQuery({
-      queryKey: ["get_chat_messages", params.chat_id],
+      queryKey: [
+        "get_chat_messages",
+        params.chat_id,
+        { around_id: search?.message_search_id },
+      ],
       queryFn: chatMessagesQueryFn(params.chat_id, context.userDetail?.token),
       initialPageParam: {
         limit: 10,
-        offset: 0,
-      },
+        around_id: search?.message_search_id,
+      } as ChatMessagesParam,
       staleTime: Infinity,
       retry: false,
     });
+  },
+  validateSearch: (
+    search: Record<string, unknown>
+  ): { message_search_id?: number | null } => {
+    return {
+      message_search_id: search?.message_search_id
+        ? Number(search.message_search_id)
+        : null,
+    };
   },
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const { chat_id } = Route.useParams();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { message_search_id } = Route.useSearch();
   const { userDetail, queryClient, socket } = Route.useRouteContext();
   const { mutate: mutateReadMsg } = useMarkRead();
   const { scrollContainerRef, isAtBottom, scrollToBottom } =
     useScrollToBottom();
 
-  const { data, hasNextPage, isFetchingNextPage, fetchNextPage } =
-    useSuspenseInfiniteQuery({
-      queryKey: ["get_chat_messages", chat_id],
-      queryFn: chatMessagesQueryFn(chat_id, userDetail?.token),
-      initialPageParam: {
-        limit: 10,
-        offset: 0,
-      },
-      getNextPageParam: (lastPage, allPages) => {
-        return lastPage && lastPage.length >= 10
-          ? { limit: 10, offset: allPages.length * 10 }
-          : undefined;
-      },
-      refetchOnWindowFocus: false,
-      retry: false,
-    });
+  const {
+    data,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasPreviousPage,
+    fetchPreviousPage,
+    isFetchingPreviousPage,
+  } = useSuspenseInfiniteQuery({
+    queryKey: ["get_chat_messages", chat_id, { around_id: message_search_id }],
+    queryFn: chatMessagesQueryFn(chat_id, userDetail?.token),
+    initialPageParam: {
+      limit: 10,
+      ...(message_search_id ? { around_id: message_search_id } : {}),
+    } as ChatMessagesParam,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.paging.has_older) return undefined;
+      return {
+        limit: lastPage.paging.limit,
+        before_id: lastPage.paging.oldest_id!,
+      };
+    },
+    getPreviousPageParam: (firstPage) => {
+      if (!firstPage.paging.has_newer) return undefined;
+      return {
+        limit: firstPage.paging.limit,
+        after_id: firstPage.paging.newest_id!,
+      };
+    },
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
   useEffect(() => {
     if (!socket) return;
@@ -169,7 +236,7 @@ function RouteComponent() {
     socket.listenToEvent(
       "deleteMessage",
       (eventData: {
-        action: "delete_for_me" | "delete_for_everyone" | "clear_all_chat";
+        action: "self" | "everyone" | "clear_chat";
         chat_id: number;
         deleted_by: number;
         messages_ids: number[];
@@ -178,31 +245,50 @@ function RouteComponent() {
         const msg_id = new Set(eventData.messages_ids);
         queryClient.setQueryData(
           ["get_chat_messages", eventData.chat_id?.toString()],
-          (old: { pageParams: number[]; pages: ChatMessage[][] }) => {
-            if (eventData.action === "clear_all_chat") {
+          (
+            old:
+              | {
+                  pageParams: (ChatMessagesParam | undefined)[];
+                  pages: ChatResponse[];
+                }
+              | undefined
+          ) => {
+            if (eventData.action === "clear_chat") {
               return {
-                pageParams: [],
-                pages: [],
+                pageParams: [undefined],
+                pages: [
+                  {
+                    data: [],
+                    paging: {
+                      has_newer: false,
+                      has_older: false,
+                      oldest_id: null,
+                      newest_id: null,
+                      limit: 0,
+                    },
+                  },
+                ],
               };
             }
             if (old && Array.isArray(old.pages)) {
               return {
                 ...old,
-                pages: old.pages.map((page) => {
-                  return page.map((el) => {
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  data: page.data.map((el) => {
                     if (msg_id.has(el.id)) {
                       return {
                         ...el,
                         delete_action: eventData.action,
                         delete_text:
                           userDetail?.id === eventData.deleted_by
-                            ? `You deleted this message ${eventData.action === "delete_for_me" ? "" : "for everyone"}`
+                            ? `You deleted this message ${eventData.action === "self" ? "" : "for everyone"}`
                             : "This message is deleted by sender",
                       };
                     }
                     return el;
-                  });
-                }),
+                  }),
+                })),
               };
             }
           }
@@ -221,18 +307,26 @@ function RouteComponent() {
 
         queryClient.setQueryData(
           ["get_chat_messages", eventData.chat_id?.toString()],
-          (old: { pageParams: number[]; pages: ChatMessage[][] }) => {
+          (
+            old:
+              | {
+                  pageParams: (ChatMessagesParam | undefined)[];
+                  pages: ChatResponse[];
+                }
+              | undefined
+          ) => {
             if (old && Array.isArray(old.pages)) {
               return {
                 ...old,
-                pages: old.pages.map((page) => {
-                  return page.map((el) => {
+                pages: old.pages.map((page) => ({
+                  ...page,
+                  data: page.data.map((el) => {
                     return {
                       ...el,
                       read_status: "read",
                     };
-                  });
-                }),
+                  }),
+                })),
               };
             }
           }
@@ -243,17 +337,43 @@ function RouteComponent() {
       if (Number(chat_id) !== eventdata.chat_id) return;
       queryClient.setQueryData(
         ["get_chat_messages", eventdata.chat_id?.toString()],
-        (old: { pageParams: number[]; pages: ChatMessage[][] } | undefined) => {
-          if (old && Array.isArray(old.pages) && Array.isArray(old.pages[0])) {
+        (
+          old:
+            | {
+                pageParams: (ChatMessagesParam | undefined)[];
+                pages: ChatResponse[];
+              }
+            | undefined
+        ) => {
+          if (old && Array.isArray(old.pages) && old.pages.length > 0) {
+            const firstPage = old.pages[0];
+
             return {
               ...old,
-              pages: [[eventdata, ...old.pages[0]], ...old.pages.slice(1)],
+              pages: [
+                {
+                  ...firstPage,
+                  data: [eventdata, ...firstPage.data],
+                },
+                ...old.pages.slice(1),
+              ],
             };
           }
 
           return {
-            pageParams: [],
-            pages: [[eventdata]],
+            pageParams: [undefined],
+            pages: [
+              {
+                data: [eventdata],
+                paging: {
+                  has_newer: false,
+                  has_older: false,
+                  oldest_id: eventdata.id,
+                  newest_id: eventdata.id,
+                  limit: 1,
+                },
+              },
+            ],
           };
         }
       );
@@ -274,8 +394,22 @@ function RouteComponent() {
     });
   }, [socket?.listenToEvent]);
 
+  useEffect(() => {
+    if (!message_search_id) return;
+
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`message-${message_search_id}`);
+      if (el) {
+        el.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    });
+  }, [message_search_id]);
+
   const { flatMessages } = useMessageProcessor({
-    data: data.pages.flatMap((el) => el),
+    data: data.pages.flatMap((el) => el.data),
     groupTemplate: {
       items: [] as ChatMessage[],
       system: [] as ChatMessage[],
@@ -291,6 +425,13 @@ function RouteComponent() {
         ref={scrollContainerRef}
         className="w-full h-full flex flex-col-reverse overflow-y-auto py-2 px-4 gap-2"
       >
+        <MessageHead
+          has_data={true}
+          show_end_reach={false}
+          hasNextPage={hasPreviousPage}
+          handleFetchNext={() => hasPreviousPage && fetchPreviousPage()}
+          isFetchingNextPage={isFetchingPreviousPage}
+        />
         {flatMessages.map((message) => {
           if ("date" in message) {
             return (
@@ -340,6 +481,24 @@ function RouteComponent() {
         >
           <ChevronsDown />
         </Button>
+      )}
+
+      {message_search_id && (
+        <ActionTooltip content="Close Search" align="start" side="top">
+          <Button
+            onClick={() => {
+              navigate({
+                search: {
+                  message_search_id: null,
+                  search_panel: false,
+                },
+              });
+            }}
+            className="absolute bottom-4 right-1/3 -translate-x-1/3 z-20 rounded-full shadow-lg"
+          >
+            <MessageCircleX />
+          </Button>
+        </ActionTooltip>
       )}
     </div>
   );

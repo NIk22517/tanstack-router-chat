@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { type ChatMessage } from "@/routes/_auth/_chat/$chat_id.index";
+import { Route, type ChatMessage } from "@/routes/_auth/_chat/$chat_id.index";
 import { ActionTooltip } from "@/components/action-tooltip";
 import { DeleteMessage } from "@/components/chat/DeleteMessage";
 import { CheckCheck, Reply, Trash2 } from "lucide-react";
@@ -27,11 +27,13 @@ export interface MessageRouteState {
 }
 
 export const SingleMessage = ({ message, isYou }: MessageProps) => {
+  const { message_search_id } = Route.useSearch();
   const [action, setAction] = useState<MessageAction>(MessageAction.DEFAULT);
   const { setData } = useChatState(key);
 
   return (
     <div
+      id={`message-${message.id}`}
       key={message.id}
       className={cn("w-full flex", isYou ? "justify-end" : "justify-start")}
     >
@@ -67,10 +69,13 @@ export const SingleMessage = ({ message, isYou }: MessageProps) => {
               <div
                 className={cn(
                   "max-w-md rounded px-4 py-2",
-                  isYou ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
+                  isYou ? "bg-blue-500 text-white" : "bg-gray-200 text-black",
+                  message_search_id === message.id
+                    ? "border-2 border-amber-300"
+                    : "border-none"
                 )}
               >
-                <ReplyData message={message.reply_data as ChatMessage} />
+                <ReplyData message={message.reply_data} />
                 {message.attachments && message.attachments.length > 0 && (
                   <div
                     className="grid gap-2 mt-2"

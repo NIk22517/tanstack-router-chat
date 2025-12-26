@@ -11,11 +11,7 @@ import {
 import { useLocalStorage } from "@/hooks";
 import { useDeleteMessage } from "@/components/chat/apiCalls";
 
-const allActions = [
-  "delete_for_me",
-  "delete_for_everyone",
-  "clear_all_chat",
-] as const;
+const allActions = ["self", "everyone", "clear_chat"] as const;
 
 type AllActions = (typeof allActions)[number];
 
@@ -76,7 +72,7 @@ export const DeleteMessage = ({
               <Button
                 disabled={isPending}
                 variant={"outline"}
-                onClick={() => handleDelete("clear_all_chat")}
+                onClick={() => handleDelete("clear_chat")}
               >
                 Clear All Chat
               </Button>
@@ -91,7 +87,7 @@ export const DeleteMessage = ({
                   <Button
                     disabled={isPending}
                     variant={"outline"}
-                    onClick={() => handleDelete("delete_for_me")}
+                    onClick={() => handleDelete("self")}
                   >
                     Delete for me
                   </Button>
@@ -99,7 +95,7 @@ export const DeleteMessage = ({
               ) : (
                 <div className="w-full flex flex-col gap-2 justify-start">
                   {allActions
-                    .filter((el) => el !== "clear_all_chat")
+                    .filter((el) => el !== "clear_chat")
                     .map((action) => {
                       return (
                         <Button

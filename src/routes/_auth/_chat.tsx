@@ -40,6 +40,7 @@ export interface LastMessage {
   message: string;
   attachments: AttachmentType[];
   created_at: string;
+  message_id: number;
 }
 
 export interface ChatItem {
@@ -216,14 +217,19 @@ function RouteComponent() {
     socket.listenToEvent(
       "deleteMessage",
       (eventData: {
-        action: "delete_for_me" | "delete_for_everyone" | "clear_all_chat";
+        action: "self" | "everyone" | "clear_chat";
         chat_id: number;
         deleted_by: number;
         messages_ids: number[];
       }) => {
         const updatedPages = data.pages.map((pages) => {
           return pages.map((el) => {
-            if (eventData.chat_id === el.chat_id) {
+            if (
+              eventData.chat_id === el.chat_id &&
+              eventData.messages_ids.some(
+                (ele) => el?.last_message?.message_id === ele
+              )
+            ) {
               return {
                 ...el,
                 last_message: {
