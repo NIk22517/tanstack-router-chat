@@ -132,4 +132,20 @@ export class ChatServices extends BaseService {
       this.buildConfig({ auth: values })
     );
   };
+
+  messagesSearch = (
+    values: AuthInfo & {
+      chat_id: string;
+      query: {
+        search_text: string;
+        cursor: string | undefined | null;
+        limit: number | undefined;
+      };
+    }
+  ) => {
+    return this.instance.get(`/chat/messages-search/${values.chat_id}`, {
+      ...this.buildConfig({ auth: values }),
+      params: values.query,
+    });
+  };
 }

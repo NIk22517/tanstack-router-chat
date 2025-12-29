@@ -1,13 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 import { services } from "@/services";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { useMessageProcessor } from "@/hooks/useMessagesProcess";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { SingleMessage } from "@/components/chat/SingleMessage";
 import { useMarkRead } from "@/components/chat/apiCalls";
-import { useScrollToBottom } from "@/hooks/useScrollToBottom";
+import { useScrollToBottom, useMessageProcessor } from "@/hooks";
 import { ChevronsDown, MessageCircleX } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { ActionTooltip } from "@/components/action-tooltip";
@@ -143,8 +142,6 @@ export const chatMessagesQueryFn =
       params.set("around_id", String(pageParam.around_id));
     }
 
-    console.log(pageParam, "pageParam");
-
     const res = await services.chatServices.getMessages({
       token,
       query: `?${params.toString()}`,
@@ -185,13 +182,20 @@ export const Route = createFileRoute("/_auth/_chat/$chat_id/")({
         : null,
     };
   },
+  search: {
+    middlewares: [
+      stripSearchParams({
+        message_search_id: null,
+      }),
+    ],
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const { chat_id } = Route.useParams();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { message_search_id } = Route.useSearch();
+  const { message_search_id, search_panel } = Route.useSearch();
   const { userDetail, queryClient, socket } = Route.useRouteContext();
   const { mutate: mutateReadMsg } = useMarkRead();
   const { scrollContainerRef, isAtBottom, scrollToBottom } =
@@ -199,6 +203,7 @@ function RouteComponent() {
 
   const {
     data,
+    isLoading,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
@@ -396,17 +401,15 @@ function RouteComponent() {
 
   useEffect(() => {
     if (!message_search_id) return;
+    const el = document.getElementById(`message-${message_search_id}`);
+    if (!el) return;
 
-    requestAnimationFrame(() => {
-      const el = document.getElementById(`message-${message_search_id}`);
-      if (el) {
-        el.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
+    el.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+      inline: "start",
     });
-  }, [message_search_id]);
+  }, [message_search_id, isLoading]);
 
   const { flatMessages } = useMessageProcessor({
     data: data.pages.flatMap((el) => el.data),
@@ -482,8 +485,7 @@ function RouteComponent() {
           <ChevronsDown />
         </Button>
       )}
-
-      {message_search_id && (
+      {message_search_id && !search_panel && (
         <ActionTooltip content="Close Search" align="start" side="top">
           <Button
             onClick={() => {

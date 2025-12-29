@@ -3,6 +3,15 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_auth/_chat/")({
   component: RouteComponent,
+  head: () => {
+    return {
+      meta: [
+        {
+          title: "Chat-Index",
+        },
+      ],
+    };
+  },
 });
 
 function RouteComponent() {

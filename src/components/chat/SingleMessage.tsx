@@ -33,6 +33,7 @@ export const SingleMessage = ({ message, isYou }: MessageProps) => {
 
   return (
     <div
+      data-message-id={message.id}
       id={`message-${message.id}`}
       key={message.id}
       className={cn("w-full flex", isYou ? "justify-end" : "justify-start")}

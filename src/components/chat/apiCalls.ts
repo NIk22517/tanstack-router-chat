@@ -1,6 +1,10 @@
 import type { ScheduleMessgaeType } from "@/routes/_auth/$chat_id.schedule";
 import { services } from "@/services";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
 export const useCreateChat = () => {
@@ -230,5 +234,61 @@ export const useEditSchedule = () => {
         );
       }
     },
+  });
+};
+
+type MsgSearch = {
+  id: number;
+  message: string;
+  highlighted_message: string;
+  rank: number;
+  created_at: string;
+};
+
+interface SearchMessagesType {
+  data: MsgSearch[];
+  nextCursor?: string | null;
+}
+
+interface SearchCursor {
+  limit: number;
+  cursor?: string | null;
+}
+
+export const useSearchMessages = ({
+  chat_id,
+  search_text,
+  token,
+}: {
+  token?: string;
+  chat_id: string;
+  search_text: string;
+}) => {
+  return useInfiniteQuery({
+    queryKey: ["get_search_messages", chat_id, search_text],
+    queryFn: async ({ pageParam }: { pageParam: SearchCursor }) => {
+      const res = await services.chatServices.messagesSearch({
+        chat_id,
+        token,
+        query: {
+          search_text,
+          limit: pageParam.limit,
+          cursor: pageParam.cursor,
+        },
+      });
+
+      if (res.status === 200) {
+        return res?.data?.data as SearchMessagesType;
+      }
+
+      throw new Error(res?.data?.message || "Failed to fetch messages");
+    },
+    initialPageParam: { limit: 10, cursor: null } as SearchCursor,
+    getNextPageParam: (lastPage) =>
+      lastPage.nextCursor
+        ? { limit: 10, cursor: lastPage.nextCursor }
+        : undefined,
+
+    enabled: !!search_text,
   });
 };
