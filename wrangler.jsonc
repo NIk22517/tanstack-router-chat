@@ -3,12 +3,30 @@
   "name": "tanstack-chat",
   "compatibility_date": "2026-02-25",
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
   "assets": {
-    "directory": "dist"
+    "directory": "dist",
   },
-  "compatibility_flags": [
-    "nodejs_compat"
-  ]
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "API_URL": "https://tanstack-chat.nik22517.workers.production",
+  },
+  "env": {
+    "development": {
+      "name": "tanstack-chat-dev",
+      "vars": {
+        "ENVIRONMENT": "development",
+        "API_URL": "https://tanstack-chat.nik22517.workers.dev",
+      },
+    },
+    "local": {
+      "name": "tanstack-chat-local",
+      "vars": {
+        "ENVIRONMENT": "development",
+        "API_URL": "http://localhost:3001",
+      },
+    },
+  },
 }
