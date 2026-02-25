@@ -174,7 +174,7 @@ export const Route = createFileRoute("/_auth/_chat/$chat_id/")({
     });
   },
   validateSearch: (
-    search: Record<string, unknown>
+    search: Record<string, unknown>,
   ): { message_search_id?: number | null } => {
     return {
       message_search_id: search?.message_search_id
@@ -256,7 +256,7 @@ function RouteComponent() {
                   pageParams: (ChatMessagesParam | undefined)[];
                   pages: ChatResponse[];
                 }
-              | undefined
+              | undefined,
           ) => {
             if (eventData.action === "clear_chat") {
               return {
@@ -296,9 +296,9 @@ function RouteComponent() {
                 })),
               };
             }
-          }
+          },
         );
-      }
+      },
     );
 
     socket.listenToEvent(
@@ -318,7 +318,7 @@ function RouteComponent() {
                   pageParams: (ChatMessagesParam | undefined)[];
                   pages: ChatResponse[];
                 }
-              | undefined
+              | undefined,
           ) => {
             if (old && Array.isArray(old.pages)) {
               return {
@@ -334,24 +334,35 @@ function RouteComponent() {
                 })),
               };
             }
-          }
+          },
         );
-      }
+      },
     );
     socket?.listenToEvent("sendMessage", (eventdata) => {
+      console.log(eventdata, "eventdata");
       if (Number(chat_id) !== eventdata.chat_id) return;
+      console.log(
+        Number(chat_id) !== eventdata.chat_id,
+        "Number(chat_id) !== eventdata.chat_id",
+      );
       queryClient.setQueryData(
-        ["get_chat_messages", eventdata.chat_id?.toString()],
+        [
+          "get_chat_messages",
+          eventdata.chat_id?.toString(),
+          { around_id: message_search_id },
+        ],
         (
           old:
             | {
                 pageParams: (ChatMessagesParam | undefined)[];
                 pages: ChatResponse[];
               }
-            | undefined
+            | undefined,
         ) => {
           if (old && Array.isArray(old.pages) && old.pages.length > 0) {
             const firstPage = old.pages[0];
+
+            console.log(eventdata, "eventdata");
 
             return {
               ...old,
@@ -380,7 +391,7 @@ function RouteComponent() {
               },
             ],
           };
-        }
+        },
       );
 
       if (eventdata.sender_id !== userDetail?.id) {

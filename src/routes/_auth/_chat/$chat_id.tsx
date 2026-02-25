@@ -1,5 +1,5 @@
 import { services } from "@/services";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { fallbackIcon, type ChatItem } from "../_chat";
 import { Label } from "@/components/ui/label";
@@ -66,7 +66,7 @@ export const Route = createFileRoute("/_auth/_chat/$chat_id")({
     });
   },
   validateSearch: (
-    search: Record<string, unknown>
+    search: Record<string, unknown>,
   ): { search_panel?: boolean } => {
     return {
       search_panel: Boolean(search?.search_panel),
@@ -92,17 +92,18 @@ function RouteComponent() {
     refetchOnWindowFocus: false,
   });
 
-  // const { data: suggestions } = useQuery({
-  //   queryKey: ["get_last_message_suggestion_reply", chat_id],
-  //   queryFn: () =>
-  //     getAiSuggestionReply({
-  //       chat_id: chat_id,
-  //       token: userDetail?.token,
-  //     }),
-  //   staleTime: Infinity,
-  //   retry: false,
-  //   refetchOnWindowFocus: false,
-  // });
+  const { data: suggestions } = useQuery({
+    queryKey: ["get_last_message_suggestion_reply", chat_id],
+    queryFn: () =>
+      getAiSuggestionReply({
+        chat_id: chat_id,
+        token: userDetail?.token,
+      }),
+    staleTime: Infinity,
+    retry: false,
+    refetchOnWindowFocus: false,
+    enabled: false,
+  });
 
   const { mutate } = useMutation({
     mutationFn: async ({
@@ -164,7 +165,7 @@ function RouteComponent() {
             setRecordedAudio(null);
             resetData();
           },
-        }
+        },
       );
     },
   });
@@ -236,7 +237,7 @@ function RouteComponent() {
           />
         </div>
       </div>
-      <div className="w-full flex flex-row overflow-hidden">
+      <div className="w-full h-full flex flex-row overflow-hidden">
         <div className="w-full flex flex-col overflow-hidden">
           {files.length > 0 ? (
             <div className="w-full h-full py-2 px-4 flex justify-center items-center overflow-hidden">
@@ -271,24 +272,24 @@ function RouteComponent() {
           ) : (
             <Outlet />
           )}
-          {/* {suggestions && suggestions?.suggestions?.length > 0 && (
-        <div className="flex flex-row gap-2 flex-nowrap items-center pb-2 scrollbar-hide">
-          {suggestions.suggestions?.map((suggestion, i) => {
-            return (
-              <Button
-                key={`${i + 1}`}
-                size={"sm"}
-                onClick={() => {
-                  form.setFieldValue("message", suggestion);
-                }}
-                variant={"outline"}
-              >
-                {suggestion}
-              </Button>
-            );
-          })}
-        </div>
-      )} */}
+          {suggestions && suggestions?.suggestions?.length > 0 && (
+            <div className="flex flex-row gap-2 flex-nowrap items-center pb-2 scrollbar-hide">
+              {suggestions.suggestions?.map((suggestion, i) => {
+                return (
+                  <Button
+                    key={`${i + 1}`}
+                    size={"sm"}
+                    onClick={() => {
+                      form.setFieldValue("message", suggestion);
+                    }}
+                    variant={"outline"}
+                  >
+                    {suggestion}
+                  </Button>
+                );
+              })}
+            </div>
+          )}
           <div className="w-full mt-auto border-1 border-gray-200 p-2">
             <ReplyData
               message={stateData?.reply}
@@ -357,7 +358,7 @@ function RouteComponent() {
 
                     if (!form.state.values.message.trim().length) {
                       console.error(
-                        "Please add messages to schedule can not schedule attachment"
+                        "Please add messages to schedule can not schedule attachment",
                       );
                     }
 
@@ -375,7 +376,7 @@ function RouteComponent() {
                             message: "",
                           });
                         },
-                      }
+                      },
                     );
                   };
 

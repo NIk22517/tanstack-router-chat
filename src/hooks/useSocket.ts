@@ -33,7 +33,7 @@ export const useSocket = <T = any>({
 
   useEffect(() => {
     if (!token) return;
-    const socketInstance = io("ws://192.168.1.36:8080", {
+    const socketInstance = io("ws://192.168.1.33:8080", {
       transports: ["websocket"],
       autoConnect: false,
       forceNew: true,
@@ -75,7 +75,7 @@ export const useSocket = <T = any>({
         console.warn(`Cannot emit "${event}": Socket is not initialized`);
       }
     },
-    [socket]
+    [socket],
   );
 
   const listenToEvent = useCallback(
@@ -86,7 +86,7 @@ export const useSocket = <T = any>({
         console.warn(`Cannot listen to "${event}": Socket is not initialized`);
       }
     },
-    [socket]
+    [socket],
   );
 
   const removeListener = useCallback(
@@ -95,11 +95,11 @@ export const useSocket = <T = any>({
         socket.off(event);
       } else {
         console.warn(
-          `Cannot remove listener for "${event}": Socket is not initialized`
+          `Cannot remove listener for "${event}": Socket is not initialized`,
         );
       }
     },
-    [socket]
+    [socket],
   );
 
   return { socket, isConnected, emitEvent, listenToEvent, removeListener };
