@@ -81,7 +81,10 @@ export const useSocket = <T = any>({
   const listenToEvent = useCallback(
     <R = T>(event: string, callback: (data: R) => void) => {
       if (socket) {
-        socket.on(event, callback);
+        socket.on(event, (data: R) => {
+          console.log(`Event: ${event}`, data);
+          callback(data);
+        });
       } else {
         console.warn(`Cannot listen to "${event}": Socket is not initialized`);
       }

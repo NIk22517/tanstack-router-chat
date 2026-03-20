@@ -49,6 +49,7 @@ export const useControlCall = () => {
       call_id: number;
       status: PARTICIPANT_STATUSES;
       token: string | undefined;
+      reason?: "manual" | "timeout";
     }) => {
       const res = await services.callServices.controlCall({
         data: {
