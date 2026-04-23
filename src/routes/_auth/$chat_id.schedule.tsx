@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ScheduleCard } from "@/components/chat/ScheduleCard";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { services } from "@/services";
+import type { AttachmentType } from "./_chat/$chat_id.index";
 
 export type ScheduleMessgaeType = {
   id: number;
@@ -14,6 +15,7 @@ export type ScheduleMessgaeType = {
   last_attempt_at: string;
   completed_at: string | null;
   created_at: string;
+  attachments: AttachmentType[];
 };
 
 const get_schedule_messages = async ({
@@ -75,7 +77,10 @@ function RouteComponent() {
     token: userDetail?.token,
   });
   return (
-    <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 p-2">
+    <div
+      className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3
+  2xl:grid-cols-4   p-2"
+    >
       {data?.map((el) => <ScheduleCard data={el} key={el.id} />)}
     </div>
   );

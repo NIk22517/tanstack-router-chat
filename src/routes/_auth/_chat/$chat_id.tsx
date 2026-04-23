@@ -368,6 +368,7 @@ function RouteComponent() {
                         message: form.state.values.message,
                         scheduled_at: utcDateTime,
                         token: userDetail?.token,
+                        files,
                       },
                       {
                         onSuccess: () => {
@@ -375,6 +376,7 @@ function RouteComponent() {
                           form.reset({
                             message: "",
                           });
+                          setFiles([]);
                         },
                       },
                     );

@@ -116,17 +116,23 @@ export const useScheduleMessage = () => {
       chat_id,
       token,
       scheduled_at,
+      files,
     }: {
       message: string;
       chat_id: string;
       token?: string;
       scheduled_at: string;
+      files: File[];
     }) => {
-      if (!message) return;
+      if (!message && files.length === 0) return;
       const formData = new FormData();
       formData.append("chat_id", chat_id);
       formData.append("message", message);
       formData.append("scheduled_at", scheduled_at);
+
+      for (const file of files) {
+        formData.append("files", file);
+      }
 
       const res = await services.chatServices.scheduleMessage({
         token,
@@ -175,7 +181,7 @@ export const useDeleteScheduleMessage = () => {
             if (old) {
               return old.filter((el) => el.id !== variables.schedule_id);
             }
-          }
+          },
         );
       }
     },
@@ -230,7 +236,7 @@ export const useEditSchedule = () => {
                 return el;
               });
             }
-          }
+          },
         );
       }
     },

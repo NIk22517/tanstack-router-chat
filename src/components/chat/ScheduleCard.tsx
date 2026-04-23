@@ -11,6 +11,7 @@ import { Label } from "../ui/label";
 import type { ScheduleMessgaeType } from "@/routes/_auth/$chat_id.schedule";
 import { DeleteScheduleMessage } from "./DeleteScheduleMessgae";
 import { EditScheduleMessge } from "./EditScheduleMessage";
+import { Link } from "@tanstack/react-router";
 
 export const ScheduleCard = ({ data }: { data: ScheduleMessgaeType }) => {
   return (
@@ -51,10 +52,26 @@ export const ScheduleCard = ({ data }: { data: ScheduleMessgaeType }) => {
       </CardHeader>
 
       <CardContent className="space-y-4 text-sm">
-        <div>
-          <Label>Message</Label>
-          <p className="text-muted-foreground">{data.message}</p>
-        </div>
+        {data.attachments?.length > 0 && (
+          <div>
+            <Label>Attachments</Label>
+            <div className="flex flex-col">
+              {data.attachments.map((attachment) => {
+                return (
+                  <Link to={attachment.secure_url} target="_blank">
+                    {attachment.original_filename}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {data.message && (
+          <div>
+            <Label>Message</Label>
+            <p className="text-muted-foreground">{data.message}</p>
+          </div>
+        )}
 
         <div className="flex justify-between gap-4">
           <div>
